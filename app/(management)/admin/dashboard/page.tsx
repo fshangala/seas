@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Card } from '@/components/ui'
+import { Card, StatsCard } from '@/components/ui'
 import { Users, ShieldCheck, Activity, Database, ChevronRight, UserPlus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -58,7 +58,7 @@ export default function AdminDashboard() {
           <p className="text-slate-500 font-medium">Global overview and system-wide management.</p>
         </div>
         <div className="flex gap-4">
-          <button className="flex items-center gap-2 px-6 py-3 rounded-2xl font-bold bg-white text-slate-800 shadow-sm border border-slate-100 hover:bg-slate-50 transition-all">
+          <button className="flex items-center gap-2 px-6 py-3 rounded-2xl font-bold bg-white text-slate-800 shadow-sm border border-slate-100 hover:bg-slate-50 transition-all cursor-pointer">
             <UserPlus size={20} />
             Add Examiner
           </button>
@@ -67,35 +67,24 @@ export default function AdminDashboard() {
 
       {/* Admin Stats */}
       <div className="grid grid-cols-3 gap-6">
-        <Card className="flex items-center gap-6 p-8">
-          <div className="w-14 h-14 rounded-2xl bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <Users size={28} />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-3xl font-black text-slate-800">{stats.totalUsers}</span>
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Total Staff</span>
-          </div>
-        </Card>
-
-        <Card className="flex items-center gap-6 p-8">
-          <div className="w-14 h-14 rounded-2xl bg-teal-500 text-white flex items-center justify-center shadow-lg shadow-teal-500/20">
-            <ShieldCheck size={28} />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-3xl font-black text-slate-800">{stats.totalAssessments}</span>
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Total Assessments</span>
-          </div>
-        </Card>
-
-        <Card className="flex items-center gap-6 p-8">
-          <div className="w-14 h-14 rounded-2xl bg-slate-800 text-white flex items-center justify-center shadow-lg shadow-slate-800/20">
-            <Activity size={28} />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-3xl font-black text-slate-800">{stats.systemLogs}</span>
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Audit Entries</span>
-          </div>
-        </Card>
+        <StatsCard 
+          label="Total Staff" 
+          value={stats.totalUsers} 
+          icon={Users} 
+          colorClass="bg-indigo-500 shadow-indigo-500/20" 
+        />
+        <StatsCard 
+          label="Total Assessments" 
+          value={stats.totalAssessments} 
+          icon={ShieldCheck} 
+          colorClass="bg-teal-500 shadow-teal-500/20" 
+        />
+        <StatsCard 
+          label="Audit Entries" 
+          value={stats.systemLogs} 
+          icon={Activity} 
+          colorClass="bg-slate-800 shadow-slate-800/20" 
+        />
       </div>
 
       <div className="grid grid-cols-12 gap-12">

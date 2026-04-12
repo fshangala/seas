@@ -76,7 +76,7 @@ export default function ManagementLayout({ children }: { children: React.ReactNo
               <button
                 key={item.href}
                 onClick={() => router.push(item.href)}
-                className={`flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all text-sm ${
+                className={`flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all text-sm cursor-pointer ${
                   pathname.startsWith(item.href) ? 'bg-white text-slate-900 shadow-xl' : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -95,7 +95,7 @@ export default function ManagementLayout({ children }: { children: React.ReactNo
           </div>
           <button 
             onClick={handleLogout}
-            className="flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-red-400 hover:bg-red-500/10 transition-all text-sm"
+            className="flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-red-400 hover:bg-red-500/10 transition-all text-sm cursor-pointer"
           >
             <LogOut size={20} />
             Sign Out

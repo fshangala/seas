@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { Button, Card } from '@/components/ui'
+import { Button, Card, Input, FormGroup } from '@/components/ui'
 import { ShieldCheck, Mail, Lock, AlertCircle } from 'lucide-react'
 
 export default function LoginPage() {
@@ -45,7 +45,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-50">
+    <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-50 min-h-screen">
       <div className="max-w-md w-full flex flex-col gap-8">
         <div className="text-center flex flex-col items-center gap-4">
           <div className="w-16 h-16 teal-gradient rounded-2xl flex items-center justify-center text-white shadow-xl">
@@ -57,35 +57,27 @@ export default function LoginPage() {
 
         <Card className="p-8">
           <form onSubmit={handleLogin} className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input 
-                  type="email" 
-                  required
-                  placeholder="name@institution.edu" 
-                  className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-100 focus:border-teal-500 outline-hidden bg-slate-50 font-medium"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-            </div>
+            <FormGroup label="Email Address">
+              <Input 
+                type="email" 
+                required
+                icon={Mail}
+                placeholder="name@institution.edu" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </FormGroup>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input 
-                  type="password" 
-                  required
-                  placeholder="••••••••" 
-                  className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-100 focus:border-teal-500 outline-hidden bg-slate-50 font-medium"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-            </div>
+            <FormGroup label="Password">
+              <Input 
+                type="password" 
+                required
+                icon={Lock}
+                placeholder="••••••••" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </FormGroup>
 
             {error && (
               <div className="flex items-center gap-2 text-red-500 bg-red-50 p-4 rounded-2xl text-sm font-bold border border-red-100">
@@ -104,7 +96,7 @@ export default function LoginPage() {
               New staff member?{' '}
               <button 
                 onClick={() => router.push('/register')}
-                className="text-teal-600 font-black hover:underline"
+                className="text-teal-600 font-black hover:underline cursor-pointer"
               >
                 Create Account
               </button>
@@ -114,7 +106,7 @@ export default function LoginPage() {
 
         <button 
           onClick={() => router.push('/')}
-          className="text-slate-400 font-bold text-sm hover:text-teal-600 transition-colors"
+          className="text-slate-400 font-bold text-sm hover:text-teal-600 transition-colors cursor-pointer text-center"
         >
           &larr; Return to Candidate Entrance
         </button>

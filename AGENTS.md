@@ -5,7 +5,7 @@ This document provides foundational mandates for AI agents working on the SEAS p
 ## 🏗 Architecture Mandates (MVVM)
 - **Model**: Use `lib/services/` for Supabase API calls and `lib/idb.ts` for IndexedDB operations.
 - **ViewModel**: Use `lib/viewmodels/AssessmentContext.tsx` to manage UI state and handle proctoring logic.
-- **View**: Components in `components/` should remain thin and rely on context for state.
+- **View**: Components in `components/` should remain thin and rely on context for state. Prioritize reusable components for UI patterns (e.g., stats cards, form inputs, layouts) to maintain consistency and reduce duplication.
 
 ## 🛠 Tech Stack Conventions
 - **Tailwind 4**: Use the new `@theme` and `@layer` syntax in `app/globals.css`.
@@ -22,6 +22,7 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - **Secondary**: Slate gradients (`from-slate-800 to-slate-900`).
 - **Accent**: Cyan/Teal (`from-cyan-400 to-teal-500`).
 - **Corners**: Always use `rounded-2xl` for cards and buttons to match Material Design 3 specs.
+- **Interactivity**: All links (`<a>`, `<Link>`) and buttons (`<button>`, `Button` component) MUST include the `cursor-pointer` class.
 
 ## 🔄 Deployment & PWA
 - **manifest.json**: Ensure `public/manifest.json` is updated if new assets or theme colors are added.

@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { Button, Card } from '@/components/ui'
+import { Button, Card, Input, FormGroup } from '@/components/ui'
 import { UserPlus, Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react'
 
 export default function RegisterPage() {
@@ -94,50 +94,38 @@ export default function RegisterPage() {
 
         <Card className="p-8">
           <form onSubmit={handleRegister} className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">Full Name</label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input 
-                  type="text" 
-                  required
-                  placeholder="Dr. Jane Doe" 
-                  className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-100 focus:border-teal-500 outline-hidden bg-slate-50 font-medium text-slate-800"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                />
-              </div>
-            </div>
+            <FormGroup label="Full Name">
+              <Input 
+                type="text" 
+                required
+                icon={User}
+                placeholder="Dr. Jane Doe" 
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            </FormGroup>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input 
-                  type="email" 
-                  required
-                  placeholder="name@institution.edu" 
-                  className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-100 focus:border-teal-500 outline-hidden bg-slate-50 font-medium text-slate-800"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-            </div>
+            <FormGroup label="Email Address">
+              <Input 
+                type="email" 
+                required
+                icon={Mail}
+                placeholder="name@institution.edu" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </FormGroup>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input 
-                  type="password" 
-                  required
-                  placeholder="••••••••" 
-                  className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-100 focus:border-teal-500 outline-hidden bg-slate-50 font-medium text-slate-800"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-            </div>
+            <FormGroup label="Password">
+              <Input 
+                type="password" 
+                required
+                icon={Lock}
+                placeholder="••••••••" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </FormGroup>
 
             {error && (
               <div className="flex items-center gap-2 text-red-500 bg-red-50 p-4 rounded-2xl text-sm font-bold border border-red-100">
@@ -156,7 +144,7 @@ export default function RegisterPage() {
               Already have an account?{' '}
               <button 
                 onClick={() => router.push('/login')}
-                className="text-teal-600 font-black hover:underline"
+                className="text-teal-600 font-black hover:underline cursor-pointer"
               >
                 Sign In
               </button>
@@ -166,7 +154,7 @@ export default function RegisterPage() {
 
         <button 
           onClick={() => router.push('/')}
-          className="text-slate-400 font-bold text-sm hover:text-teal-600 transition-colors"
+          className="text-slate-400 font-bold text-sm hover:text-teal-600 transition-colors cursor-pointer text-center"
         >
           &larr; Return to Candidate Entrance
         </button>

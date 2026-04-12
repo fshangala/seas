@@ -38,9 +38,13 @@ export class AssessmentService {
   }
 
   async startSubmission(assessmentId: string, studentId: string) {
+    // Check if submission already exists
+    const existing = await this.getSubmission(assessmentId, studentId)
+    if (existing) return existing
+
     const { data, error } = await supabase
       .from('submissions')
-      .upsert({
+      .insert({
         assessment_id: assessmentId,
         student_id: studentId,
         client_start_time: new Date().toISOString(),
@@ -48,6 +52,29 @@ export class AssessmentService {
       })
       .select()
       .single()
+
+    if (error) throw error
+    return data
+  }
+
+  async getSubmission(assessmentId: string, studentId: string) {
+    const { data, error } = await supabase
+      .from('submissions')
+      .select('*')
+      .eq('assessment_id', assessmentId)
+      .eq('student_id', studentId)
+      .maybeSingle()
+
+    if (error) throw error
+    return data
+  }
+
+  async getSubmissionsByStudent(studentId: string) {
+    const { data, error } = await supabase
+      .from('submissions')
+      .select('*, assessments(title, assessment_code)')
+      .eq('student_id', studentId)
+      .order('server_received_at', { ascending: false })
 
     if (error) throw error
     return data

@@ -26,3 +26,20 @@ This document provides foundational mandates for AI agents working on the SEAS p
 ## 🔄 Deployment & PWA
 - **manifest.json**: Ensure `public/manifest.json` is updated if new assets or theme colors are added.
 - **Service Workers**: Keep `next-pwa` configuration in `next.config.ts` intact for offline reliability.
+
+## ✅ Development Progress & TODO
+
+### Core Infrastructure
+- [x] Next.js 14 App Router setup with Tailwind 4.
+- [x] Supabase Client & Database Types integration.
+- [x] Raw IndexedDB Service (`lib/idb.ts`) for offline persistence.
+- [x] MVVM State Management with `AssessmentContext`.
+- [x] Material Design 3 "Teal Theme" implementation.
+- [x] Proctoring Integrity Engine (Copy/Paste block & Tab-switch tracking).
+- [x] **Management Dashboard**: Staff login, registration, and RBAC implementation.
+
+### Pending Features (Next Steps)
+- [ ] **Image Upload Logic**: Handle handwritten work as Blobs in IDB and sync to Supabase Storage.
+- [ ] **Audit Log Syncing**: Push local proctoring logs to Supabase `audit_logs` table.
+- [ ] **Auto-Marking Engine**: Apply the Postgres trigger for MCQ and Short Answer validation.
+- [ ] **Offline Reliability**: Verify PWA service worker caching for full offline landing-to-submission flow.

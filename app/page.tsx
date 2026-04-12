@@ -7,17 +7,47 @@ import { ShieldCheck, BookOpen, Clock, Fingerprint } from 'lucide-react'
 
 export default function Home() {
   const [code, setCode] = useState('')
+  const [studentId, setStudentId] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  const handleEnter = () => {
-    if (code) router.push(`/assessment/${code}`)
+  const handleEnter = async () => {
+    if (!code || !studentId) return setError('Please enter both Assessment Code and Student ID')
+    setLoading(true)
+    setError('')
+    
+    try {
+      const assessment = await assessmentService.getAssessmentByCode(code.toUpperCase())
+      const existingSubmission = await assessmentService.getSubmission(assessment.id, studentId)
+
+      if (existingSubmission && existingSubmission.client_end_time) {
+        // Already submitted, show results
+        router.push(`/candidate/results/${studentId}`)
+      } else {
+        // Start or continue assessment
+        // We'll pass studentId in the URL to simplify the next page
+        router.push(`/assessment/${code.toUpperCase()}?studentId=${studentId}`)
+      }
+    } catch (err: any) {
+      setError(err.message || 'Assessment not found or connection error')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-50">
       <div className="max-w-4xl w-full flex flex-col gap-12">
         {/* Hero Section */}
-        <div className="text-center flex flex-col items-center gap-6">
+        <div className="text-center flex flex-col items-center gap-6 relative">
+          <button 
+            onClick={() => router.push('/login')}
+            className="absolute -top-4 -right-4 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-all uppercase tracking-widest"
+          >
+            <ShieldCheck size={14} />
+            Staff Portal
+          </button>
           <div className="w-24 h-24 teal-gradient rounded-3xl rotate-12 flex items-center justify-center text-white shadow-2xl">
             <ShieldCheck size={48} className="-rotate-12" />
           </div>
@@ -33,10 +63,17 @@ export default function Home() {
             <div className="flex flex-col gap-4">
               <h2 className="text-2xl font-bold text-slate-800">Candidate Entrance</h2>
               <p className="text-slate-500 font-medium leading-relaxed">
-                Enter your assessment code to begin. Your session is protected by the SEAS Integrity Engine.
+                Enter your details to begin or view results. Protected by the SEAS Integrity Engine.
               </p>
             </div>
             <div className="flex flex-col gap-4">
+              <input 
+                type="text" 
+                placeholder="Student ID" 
+                className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-teal-500 outline-hidden bg-white font-bold text-lg"
+                value={studentId}
+                onChange={(e) => setStudentId(e.target.value)}
+              />
               <input 
                 type="text" 
                 placeholder="Assessment Code (e.g. EXAM-2024)" 
@@ -44,7 +81,10 @@ export default function Home() {
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
               />
-              <Button onClick={handleEnter} className="py-4 text-lg">Enter Assessment</Button>
+              {error && <p className="text-red-500 font-bold text-sm px-2">{error}</p>}
+              <Button onClick={handleEnter} disabled={loading} className="py-4 text-lg">
+                {loading ? 'Verifying...' : 'Enter Assessment'}
+              </Button>
             </div>
           </Card>
 

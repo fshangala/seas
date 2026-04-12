@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SEAS (Smart Examination & Assessment System)
 
-## Getting Started
+SEAS is a resilient, offline-capable platform designed for modern academic and professional evaluations. It supports diverse question types and features a hybrid grading engine.
 
-First, run the development server:
+## 🚀 Key Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Offline-First Resilience**: All candidate responses are auto-saved to IndexedDB in real-time, allowing for uninterrupted assessments even during network outages.
+- **Integrity Engine**: Built-in protection against copy-paste/cut operations and tab-switching detection to ensure exam security.
+- **Hybrid Grading**: Automatic marking for MCQ and short-answer questions via Postgres triggers, with manual grading support for essays and image uploads.
+- **Material Design 3**: A polished, Teal-themed interface with smooth transitions and Material components.
+- **PWA Support**: Installable on desktop and mobile with service worker support for offline access.
+
+## 🛠 Technical Stack
+
+- **Framework**: Next.js (App Router)
+- **Architecture**: MVVM (Model-View-ViewModel)
+- **Database**: Supabase (Postgres + Auth + Storage)
+- **Persistence**: Raw IndexedDB for local caching and offline sync.
+- **State Management**: React Context + useReducer
+- **Design**: Tailwind CSS 4 + Lucide Icons
+
+## 📖 Database Schema
+
+The system uses a relational PostgreSQL schema in Supabase:
+- `profiles`: User roles (Admin/Examiner) and names.
+- `assessments`: Main assessment definitions.
+- `questions`: Question content and metadata.
+- `options`: Multiple-choice options.
+- `marking_keys`: Correct answers and auto-marking settings.
+- `submissions`: Candidate attempt records.
+- `responses`: Individual question responses.
+- `audit_logs`: Tracking of administrative actions.
+
+## 🚦 Getting Started
+
+### 1. Environment Setup
+Create a `.env.local` file with your Supabase credentials:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Development
+```bash
+npm install
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Build & PWA
+```bash
+npm run build
+npm run start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🔐 Integrity & Security
+The system uses the `AssessmentContext` to attach native event listeners for `copy`, `paste`, `cut`, and `visibilitychange`. All violations are logged locally in IndexedDB and synced to the `audit_logs` table.

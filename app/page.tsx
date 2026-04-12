@@ -1,65 +1,93 @@
-import Image from "next/image";
+'use client'
+
+import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button, Card } from '@/components/ui'
+import { ShieldCheck, BookOpen, Clock, Fingerprint } from 'lucide-react'
 
 export default function Home() {
+  const [code, setCode] = useState('')
+  const router = useRouter()
+
+  const handleEnter = () => {
+    if (code) router.push(`/assessment/${code}`)
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-50">
+      <div className="max-w-4xl w-full flex flex-col gap-12">
+        {/* Hero Section */}
+        <div className="text-center flex flex-col items-center gap-6">
+          <div className="w-24 h-24 teal-gradient rounded-3xl rotate-12 flex items-center justify-center text-white shadow-2xl">
+            <ShieldCheck size={48} className="-rotate-12" />
+          </div>
+          <div className="flex flex-col gap-2">
+            <h1 className="text-5xl font-black text-slate-800 tracking-tight">SEAS</h1>
+            <p className="text-xl text-slate-500 font-medium tracking-wide">Smart Examination & Assessment System</p>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Entry Card */}
+        <div className="grid md:grid-cols-2 gap-8">
+          <Card className="flex flex-col gap-8 justify-between p-10 border-teal-100 bg-linear-to-b from-white to-teal-50/30">
+            <div className="flex flex-col gap-4">
+              <h2 className="text-2xl font-bold text-slate-800">Candidate Entrance</h2>
+              <p className="text-slate-500 font-medium leading-relaxed">
+                Enter your assessment code to begin. Your session is protected by the SEAS Integrity Engine.
+              </p>
+            </div>
+            <div className="flex flex-col gap-4">
+              <input 
+                type="text" 
+                placeholder="Assessment Code (e.g. EXAM-2024)" 
+                className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-teal-500 outline-hidden bg-white font-bold tracking-widest text-lg uppercase"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+              />
+              <Button onClick={handleEnter} className="py-4 text-lg">Enter Assessment</Button>
+            </div>
+          </Card>
+
+          <div className="flex flex-col gap-6">
+            <Card className="flex items-center gap-6 p-6">
+              <div className="w-12 h-12 rounded-2xl bg-teal-100 flex items-center justify-center text-teal-600">
+                <BookOpen size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-800">Offline-Ready</h3>
+                <p className="text-slate-500 text-sm font-medium">Continue working even if your connection drops.</p>
+              </div>
+            </Card>
+
+            <Card className="flex items-center gap-6 p-6">
+              <div className="w-12 h-12 rounded-2xl bg-cyan-100 flex items-center justify-center text-cyan-600">
+                <Clock size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-800">Auto-Save</h3>
+                <p className="text-slate-500 text-sm font-medium">Every keystroke is saved locally in real-time.</p>
+              </div>
+            </Card>
+
+            <Card className="flex items-center gap-6 p-6">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-600">
+                <Fingerprint size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-800">Integrity Lock</h3>
+                <p className="text-slate-500 text-sm font-medium">Native prevention of copy-paste & tab-switching.</p>
+              </div>
+            </Card>
+          </div>
         </div>
-      </main>
+
+        {/* Footer */}
+        <footer className="text-center text-slate-400 font-medium text-sm flex items-center justify-center gap-4">
+          <span>&copy; 2024 SEAS Assessment Platform</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
+          <span>v1.0.0-Stable</span>
+        </footer>
+      </div>
     </div>
-  );
+  )
 }

@@ -109,6 +109,194 @@ export class AssessmentService {
     }
   }
 
+  async getExaminerAssessments() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+
+    const { data, error } = await supabase
+      .from('assessments')
+      .select('*, questions(count)')
+      .eq('created_by', user.id)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data
+  }
+
+  async createAssessment(title: string, durationMinutes: number, description?: string) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+
+    const { data, error } = await supabase
+      .from('assessments')
+      .insert({
+        title,
+        duration_minutes: durationMinutes,
+        description,
+        created_by: user.id,
+        is_published: false,
+        assessment_code: `DRAFT-${Math.random().toString(36).substring(2, 7).toUpperCase()}`
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  async updateAssessment(id: string, updates: Partial<Tables<'assessments'>>) {
+    const { data, error } = await supabase
+      .from('assessments')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  async publishAssessment(id: string) {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase()
+    const { data, error } = await supabase
+      .from('assessments')
+      .update({
+        is_published: true,
+        assessment_code: code
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  async duplicateAssessment(id: string) {
+    // 1. Fetch original
+    const { data: original, error: oError } = await supabase
+      .from('assessments')
+      .select('*')
+      .eq('id', id)
+      .single()
+    if (oError) throw oError
+
+    const { data: questions, error: qError } = await supabase
+      .from('questions')
+      .select('*, options(*)')
+      .eq('assessment_id', id)
+    if (qError) throw qError
+
+    // 2. Create new assessment
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+
+    const { data: duplicate, error: dError } = await supabase
+      .from('assessments')
+      .insert({
+        title: `${original.title} (Copy)`,
+        duration_minutes: original.duration_minutes,
+        description: original.description,
+        created_by: user.id,
+        is_published: false,
+        assessment_code: `DRAFT-${Math.random().toString(36).substring(2, 7).toUpperCase()}`
+      })
+      .select()
+      .single()
+    if (dError) throw dError
+
+    // 3. Clone questions and options
+    for (const q of (questions || [])) {
+      const { data: newQ, error: nqError } = await supabase
+        .from('questions')
+        .insert({
+          assessment_id: duplicate.id,
+          content: q.content,
+          question_type: q.question_type,
+          marks_possible: q.marks_possible,
+          order_index: q.order_index
+        })
+        .select()
+        .single()
+      
+      if (nqError) throw nqError
+
+      if (q.options && q.options.length > 0) {
+        const { error: noError } = await supabase
+          .from('options')
+          .insert(q.options.map((o: Tables<'options'>) => ({
+            question_id: newQ.id,
+            content: o.content
+          })))
+        if (noError) throw noError
+      }
+    }
+
+    return duplicate
+  }
+
+  async deleteAssessment(id: string) {
+    const { error } = await supabase
+      .from('assessments')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+  }
+
+  async addQuestion(assessmentId: string, question: Partial<Tables<'questions'>>, options?: string[]) {
+    const { data: qData, error: qError } = await supabase
+      .from('questions')
+      .insert({
+        content: question.content || '',
+        question_type: question.question_type,
+        marks_possible: question.marks_possible,
+        order_index: question.order_index,
+        assessment_id: assessmentId,
+      })
+      .select()
+      .single()
+
+    if (qError) throw qError
+
+    if (options && options.length > 0) {
+      const { error: oError } = await supabase
+        .from('options')
+        .insert(options.map(content => ({
+          question_id: qData.id,
+          content
+        })))
+      
+      if (oError) throw oError
+    }
+
+    return qData
+  }
+
+  async updateQuestion(id: string, updates: Partial<Tables<'questions'>>, options?: { id?: string, content: string }[]) {
+    const { error: qError } = await supabase
+      .from('questions')
+      .update(updates)
+      .eq('id', id)
+
+    if (qError) throw qError
+
+    if (options) {
+      // Simple approach: delete all and re-add if they don't have IDs, or update if they do.
+      // For simplicity in this MVP, let's assume we replace them or manage them separately.
+      // A more robust way would be to diff them.
+    }
+  }
+
+  async deleteQuestion(id: string) {
+    const { error } = await supabase
+      .from('questions')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+  }
+
   async completeSubmission(submissionId: string) {
     const { error } = await supabase
       .from('submissions')

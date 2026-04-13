@@ -6,7 +6,10 @@ import { Plus, BookOpen, Clock, Users, ChevronRight, TrendingUp } from 'lucide-r
 import { supabase } from '@/lib/supabase'
 import { Tables } from '@/lib/types/database.types'
 
+import { useRouter } from 'next/navigation'
+
 export default function ExaminerDashboard() {
+  const router = useRouter()
   const [stats, setStats] = useState({
     activeAssessments: 0,
     totalSubmissions: 0,
@@ -58,12 +61,15 @@ export default function ExaminerDashboard() {
           <h1 className="text-4xl font-black text-slate-800 tracking-tight">Examiner Dashboard</h1>
           <p className="text-slate-500 font-medium">Welcome back. Here is what&apos;s happening today.</p>
         </div>
-        <Button icon={Plus}>Create New Assessment</Button>
+        <Button icon={Plus} onClick={() => router.push('/examiner/assessments/new')}>Create New Assessment</Button>
       </header>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-6">
-        <Card className="flex items-center gap-6 p-8 bg-linear-to-br from-teal-50 to-white border-teal-100">
+        <Card 
+          className="flex items-center gap-6 p-8 bg-linear-to-br from-teal-50 to-white border-teal-100 cursor-pointer hover:border-teal-300 transition-all"
+          onClick={() => router.push('/examiner/assessments')}
+        >
           <div className="w-14 h-14 rounded-2xl bg-teal-500 text-white flex items-center justify-center shadow-lg shadow-teal-500/20">
             <BookOpen size={28} />
           </div>
@@ -98,10 +104,24 @@ export default function ExaminerDashboard() {
       <div className="grid grid-cols-12 gap-12">
         {/* Recent Assessments */}
         <div className="col-span-8 flex flex-col gap-6">
-          <h2 className="text-2xl font-bold text-slate-800">Recent Assessments</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-slate-800">Recent Assessments</h2>
+            <Button 
+              variant="secondary" 
+              className="px-4 py-1.5 h-auto text-xs" 
+              icon={ChevronRight}
+              onClick={() => router.push('/examiner/assessments')}
+            >
+              View All
+            </Button>
+          </div>
           <div className="flex flex-col gap-4">
             {recentAssessments.map((a) => (
-              <Card key={a.id} className="flex items-center justify-between p-6 group cursor-pointer hover:border-teal-200 transition-all">
+              <Card 
+                key={a.id} 
+                className="flex items-center justify-between p-6 group cursor-pointer hover:border-teal-200 transition-all"
+                onClick={() => router.push(`/examiner/assessments/${a.id}/edit`)}
+              >
                 <div className="flex items-center gap-6">
                   <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-teal-100 group-hover:text-teal-600 transition-colors">
                     <BookOpen size={20} />

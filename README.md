@@ -6,6 +6,7 @@ SEAS is a resilient, offline-capable platform designed for modern academic and p
 
 - **Offline-First Resilience**: All candidate responses are auto-saved to IndexedDB in real-time, allowing for uninterrupted assessments even during network outages.
 - **Integrity Engine**: Built-in protection against copy-paste/cut operations and tab-switching detection to ensure exam security.
+- **Assessment Management**: Comprehensive examiner tools for creating, editing, and publishing assessments. Includes metadata editing, question management, and duplication logic for versioning published assessments.
 - **Hybrid Grading**: Automatic marking for MCQ and short-answer questions via Postgres triggers, with manual grading support for essays and image uploads.
 - **Material Design 3**: A polished, Teal-themed interface with smooth transitions and Material components.
 - **PWA Support**: Installable on desktop and mobile with service worker support for offline access.

@@ -4,8 +4,9 @@ import React, { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Card, Button, Input, FormGroup } from '@/components/ui'
 import { 
-  ChevronLeft, Plus, Save, Trash2, LayoutList, 
-  CheckCircle2, AlertTriangle, Send, Info, GripVertical 
+  Plus, Save, Trash2, LayoutList, 
+  CheckCircle2, AlertTriangle, Send, Info, GripVertical,
+  LayoutDashboard, BookOpen
 } from 'lucide-react'
 import { assessmentService } from '@/lib/services/AssessmentService'
 import { supabase } from '@/lib/supabase'
@@ -140,8 +141,11 @@ export default function EditAssessmentPage() {
       <header className="flex items-center justify-between">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2 mb-2">
-            <Button variant="secondary" className="px-3 py-1.5 h-auto text-xs" icon={ChevronLeft} onClick={() => router.push('/examiner/dashboard')}>
+            <Button variant="secondary" className="px-3 py-1.5 h-auto text-xs" icon={LayoutDashboard} onClick={() => router.push('/examiner/dashboard')}>
               Dashboard
+            </Button>
+            <Button variant="secondary" className="px-3 py-1.5 h-auto text-xs" icon={BookOpen} onClick={() => router.push('/examiner/assessments')}>
+              Assessments
             </Button>
             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${assessment.is_published ? 'bg-teal-100 text-teal-600' : 'bg-slate-100 text-slate-500'}`}>
               {assessment.is_published ? 'Published' : 'Draft'}

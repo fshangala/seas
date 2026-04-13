@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Card, Button } from '@/components/ui'
 import { 
   Plus, BookOpen, Clock, ChevronRight, 
-  Search, Filter, LayoutDashboard, FileText
+  Search, Filter, LayoutDashboard, FileText, Trash2
 } from 'lucide-react'
 import { assessmentService } from '@/lib/services/AssessmentService'
 import { Tables } from '@/lib/types/database.types'
@@ -34,6 +34,19 @@ export default function AssessmentsListPage() {
     }
     loadAssessments()
   }, [])
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    if (!confirm('Are you sure you want to delete this draft? This action cannot be undone.')) return
+    
+    try {
+      await assessmentService.deleteAssessment(id)
+      setAssessments(assessments.filter(a => a.id !== id))
+    } catch (err) {
+      console.error(err)
+      alert('Failed to delete assessment')
+    }
+  }
 
   const filteredAssessments = useMemo(() => {
     return assessments.filter(a => {
@@ -149,7 +162,19 @@ export default function AssessmentsListPage() {
               </div>
             </div>
             
-            <ChevronRight className="text-slate-200 group-hover:text-teal-400 group-hover:translate-x-1 transition-all" size={24} />
+            <div className="flex items-center gap-4">
+              <ChevronRight className="text-slate-200 group-hover:text-teal-400 group-hover:translate-x-1 transition-all" size={24} />
+              
+              {!a.is_published && (
+                <button 
+                  onClick={(e) => handleDelete(e, a.id)}
+                  className="p-2 text-slate-300 hover:text-red-500 transition-all"
+                  title="Delete Draft"
+                >
+                  <Trash2 size={20} />
+                </button>
+              )}
+            </div>
           </Card>
         ))}
 

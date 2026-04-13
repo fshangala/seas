@@ -6,7 +6,8 @@ import { Card, Button, Input, FormGroup } from '@/components/ui'
 import { 
   Plus, Save, Trash2, LayoutList, 
   CheckCircle2, AlertTriangle, Send, GripVertical,
-  LayoutDashboard, BookOpen, Share2, Check
+  LayoutDashboard, BookOpen, Share2, Check, Settings, Copy,
+  Clock, FileText
 } from 'lucide-react'
 import { assessmentService } from '@/lib/services/AssessmentService'
 import { supabase } from '@/lib/supabase'
@@ -24,6 +25,16 @@ export default function EditAssessmentPage() {
   const [loading, setLoading] = useState(true)
   const [publishing, setPublishing] = useState(false)
   const [copying, setCopying] = useState(false)
+  const [duplicating, setDuplicating] = useState(false)
+  const [savingSettings, setSavingSettings] = useState(false)
+
+  // Settings state
+  const [settings, setSettings] = useState({
+    title: '',
+    duration_minutes: 0,
+    description: ''
+  })
+  const [showSettings, setShowSettings] = useState(false)
 
   // Form state for adding/editing questions
   const [editingQuestion, setEditingQuestion] = useState<Partial<FullQuestion> | null>(null)
@@ -34,16 +45,21 @@ export default function EditAssessmentPage() {
         const { data: aData, error: aError } = await supabase
           .from('assessments')
           .select('*')
-          .eq('id', id)
+          .eq('id', id as string)
           .single()
         
         if (aError) throw aError
         setAssessment(aData)
+        setSettings({
+          title: aData.title,
+          duration_minutes: aData.duration_minutes,
+          description: aData.description || ''
+        })
 
         const { data: qData, error: qError } = await supabase
           .from('questions')
           .select('*, options(*)')
-          .eq('assessment_id', id)
+          .eq('assessment_id', id as string)
           .order('order_index', { ascending: true })
 
         if (qError) throw qError
@@ -57,6 +73,36 @@ export default function EditAssessmentPage() {
     }
     loadData()
   }, [id])
+
+  const handleUpdateSettings = async () => {
+    if (!assessment) return
+    setSavingSettings(true)
+    try {
+      const updated = await assessmentService.updateAssessment(assessment.id, settings)
+      setAssessment(updated)
+      setShowSettings(false)
+      alert('Settings updated successfully!')
+    } catch (err) {
+      console.error(err)
+      alert('Failed to update settings')
+    } finally {
+      setSavingSettings(false)
+    }
+  }
+
+  const handleDuplicate = async () => {
+    if (!confirm('This will create a new draft copy of this assessment. Continue?')) return
+    setDuplicating(true)
+    try {
+      const duplicate = await assessmentService.duplicateAssessment(id as string)
+      router.push(`/examiner/assessments/${duplicate.id}/edit`)
+    } catch (err) {
+      console.error(err)
+      alert('Failed to duplicate assessment')
+    } finally {
+      setDuplicating(false)
+    }
+  }
 
   const handleAddQuestion = (type: string) => {
     setEditingQuestion({
@@ -98,7 +144,7 @@ export default function EditAssessmentPage() {
           .eq('id', qData.id)
           .single()
         
-        setQuestions([...questions, newQ])
+        if (newQ) setQuestions([...questions, newQ as FullQuestion])
       }
       setEditingQuestion(null)
     } catch (err) {
@@ -160,34 +206,95 @@ export default function EditAssessmentPage() {
               {assessment.is_published ? 'Published' : 'Draft'}
             </span>
           </div>
-          <h1 className="text-4xl font-black text-slate-800 tracking-tight">{assessment.title}</h1>
-          <p className="text-slate-500 font-medium">Manage questions and assessment configuration.</p>
+          <div className="flex items-center gap-4">
+            <h1 className="text-4xl font-black text-slate-800 tracking-tight">{assessment.title}</h1>
+            {!assessment.is_published && (
+              <button 
+                onClick={() => setShowSettings(!showSettings)}
+                className="p-2 text-slate-400 hover:text-teal-600 transition-colors"
+                title="Edit Settings"
+              >
+                <Settings size={24} />
+              </button>
+            )}
+          </div>
+          <p className="text-slate-500 font-medium">
+            {assessment.is_published 
+              ? 'This assessment is published and cannot be modified.' 
+              : 'Manage questions and assessment configuration.'}
+          </p>
         </div>
 
-        {!assessment.is_published && (
-          <Button icon={Send} onClick={handlePublish} disabled={publishing}>
-            {publishing ? 'Publishing...' : 'Publish Assessment'}
-          </Button>
-        )}
-
-        {assessment.is_published && (
-          <Card className="px-6 py-3 bg-teal-50 border-teal-200 flex items-center gap-6">
-            <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-teal-600 uppercase tracking-widest">Access Code</span>
-              <span className="text-2xl font-black text-slate-800 tracking-tighter">{assessment.assessment_code}</span>
-            </div>
-            <div className="h-10 w-[2px] bg-teal-100" />
-            <Button 
-              variant="secondary" 
-              className={`px-4 py-2 h-auto text-xs transition-all ${copying ? 'bg-teal-500 text-white border-teal-500 hover:bg-teal-600' : ''}`}
-              icon={copying ? Check : Share2}
-              onClick={handleShareLink}
-            >
-              {copying ? 'Link Copied' : 'Copy Link'}
+        <div className="flex items-center gap-4">
+          {assessment.is_published ? (
+            <Button variant="secondary" icon={Copy} onClick={handleDuplicate} disabled={duplicating}>
+              {duplicating ? 'Duplicating...' : 'Duplicate as Draft'}
             </Button>
-          </Card>
-        )}
+          ) : (
+            <Button icon={Send} onClick={handlePublish} disabled={publishing}>
+              {publishing ? 'Publishing...' : 'Publish Assessment'}
+            </Button>
+          )}
+
+          {assessment.is_published && (
+            <Card className="px-6 py-3 bg-teal-50 border-teal-200 flex items-center gap-6">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-teal-600 uppercase tracking-widest">Access Code</span>
+                <span className="text-2xl font-black text-slate-800 tracking-tighter">{assessment.assessment_code}</span>
+              </div>
+              <div className="h-10 w-[2px] bg-teal-100" />
+              <Button 
+                variant="secondary" 
+                className={`px-4 py-2 h-auto text-xs transition-all ${copying ? 'bg-teal-500 text-white border-teal-500 hover:bg-teal-600' : ''}`}
+                icon={copying ? Check : Share2}
+                onClick={handleShareLink}
+              >
+                {copying ? 'Link Copied' : 'Copy Link'}
+              </Button>
+            </Card>
+          )}
+        </div>
       </header>
+
+      {showSettings && !assessment.is_published && (
+        <Card className="p-8 border-teal-200 bg-teal-50/30 animate-in slide-in-from-top-4 duration-500">
+          <div className="grid grid-cols-2 gap-8">
+            <div className="flex flex-col gap-6">
+              <FormGroup label="Assessment Title">
+                <Input 
+                  value={settings.title}
+                  onChange={e => setSettings({...settings, title: e.target.value})}
+                  icon={BookOpen}
+                />
+              </FormGroup>
+              <FormGroup label="Duration (Minutes)">
+                <Input 
+                  type="number"
+                  value={settings.duration_minutes}
+                  onChange={e => setSettings({...settings, duration_minutes: parseInt(e.target.value) || 0})}
+                  icon={Clock}
+                />
+              </FormGroup>
+            </div>
+            <FormGroup label="Description">
+              <div className="relative">
+                <FileText className="absolute left-4 top-4 text-slate-400" size={18} />
+                <textarea 
+                  className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-100 focus:border-teal-500 outline-hidden bg-white font-medium text-slate-800 transition-all min-h-32"
+                  value={settings.description}
+                  onChange={e => setSettings({...settings, description: e.target.value})}
+                />
+              </div>
+            </FormGroup>
+          </div>
+          <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-teal-100">
+            <Button variant="secondary" onClick={() => setShowSettings(false)}>Cancel</Button>
+            <Button icon={Save} onClick={handleUpdateSettings} disabled={savingSettings}>
+              {savingSettings ? 'Saving...' : 'Save Settings'}
+            </Button>
+          </div>
+        </Card>
+      )}
 
       <div className="grid grid-cols-12 gap-12">
         {/* Question List */}
@@ -226,12 +333,14 @@ export default function EditAssessmentPage() {
                     </div>
                   )}
                 </div>
-                <button 
-                  onClick={() => handleDeleteQuestion(q.id)}
-                  className="opacity-0 group-hover:opacity-100 p-2 text-slate-300 hover:text-red-500 transition-all"
-                >
-                  <Trash2 size={20} />
-                </button>
+                {!assessment.is_published && (
+                  <button 
+                    onClick={() => handleDeleteQuestion(q.id)}
+                    className="opacity-0 group-hover:opacity-100 p-2 text-slate-300 hover:text-red-500 transition-all"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                )}
               </Card>
             ))}
 

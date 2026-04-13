@@ -16,6 +16,7 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - **Proctoring**: NEVER remove or disable the `visibilitychange`, `copy`, `paste`, or `cut` listeners in `AssessmentContext` without explicit user instruction.
 - **Data Sync**: Ensure all local responses are marked with `synced: false` until successfully persisted to Supabase.
 - **Sensitive Data**: Do not log `student_id` or `assessment_code` to external services. Use the built-in `audit_logs` for tracking.
+- **Immutability**: Published assessments MUST remain read-only. Any modifications (metadata or questions) must be performed on a duplicate draft.
 
 ## 🎨 Design System (Teal Theme)
 - **Primary**: Teal gradients (`from-teal-600 to-teal-700`).
@@ -38,7 +39,7 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - [x] Material Design 3 "Teal Theme" implementation.
 - [x] Proctoring Integrity Engine (Copy/Paste block & Tab-switch tracking).
 - [x] **Management Dashboard**: Staff login, registration, and RBAC implementation.
-- [x] **Assessment Management**: Draft creation, editing, question addition (MCQ, Short Answer, Image Upload), and publication with unique access codes.
+- [x] **Assessment Management**: Draft creation, metadata editing, question management, duplication logic, and read-only publication.
 
 ### Pending Features (Next Steps)
 - [ ] **Image Upload Logic**: Handle handwritten work as Blobs in IDB and sync to Supabase Storage.

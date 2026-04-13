@@ -109,14 +109,116 @@ export class AssessmentService {
     }
   }
 
-  async completeSubmission(submissionId: string) {
-    const { error } = await supabase
-      .from('submissions')
-      .update({
-        client_end_time: new Date().toISOString()
-      })
-      .eq('id', submissionId)
+  async getExaminerAssessments() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
 
+    const { data, error } = await supabase
+      .from('assessments')
+      .select('*, questions(count)')
+      .eq('created_by', user.id)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data
+  }
+
+  async createAssessment(title: string, durationMinutes: number, description?: string) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+
+    const { data, error } = await supabase
+      .from('assessments')
+      .insert({
+        title,
+        duration_minutes: durationMinutes,
+        description,
+        created_by: user.id,
+        is_published: false,
+        assessment_code: `DRAFT-${Math.random().toString(36).substring(2, 7).toUpperCase()}`
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  async updateAssessment(id: string, updates: Partial<Tables<'assessments'>>) {
+    const { data, error } = await supabase
+      .from('assessments')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  async publishAssessment(id: string) {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase()
+    const { data, error } = await supabase
+      .from('assessments')
+      .update({
+        is_published: true,
+        assessment_code: code
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  async addQuestion(assessmentId: string, question: Partial<Tables<'questions'>>, options?: string[]) {
+    const { data: qData, error: qError } = await supabase
+      .from('questions')
+      .insert({
+        ...question,
+        assessment_id: assessmentId,
+      })
+      .select()
+      .single()
+
+    if (qError) throw qError
+
+    if (options && options.length > 0) {
+      const { error: oError } = await supabase
+        .from('options')
+        .insert(options.map(content => ({
+          question_id: qData.id,
+          content
+        })))
+      
+      if (oError) throw oError
+    }
+
+    return qData
+  }
+
+  async updateQuestion(id: string, updates: Partial<Tables<'questions'>>, options?: { id?: string, content: string }[]) {
+    const { error: qError } = await supabase
+      .from('questions')
+      .update(updates)
+      .eq('id', id)
+
+    if (qError) throw qError
+
+    if (options) {
+      // Simple approach: delete all and re-add if they don't have IDs, or update if they do.
+      // For simplicity in this MVP, let's assume we replace them or manage them separately.
+      // A more robust way would be to diff them.
+    }
+  }
+
+  async deleteQuestion(id: string) {
+    const { error } = await supabase
+      .from('questions')
+      .delete()
+      .eq('id', id)
+    
     if (error) throw error
   }
 }

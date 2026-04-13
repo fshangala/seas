@@ -5,8 +5,8 @@ import { useRouter, useParams } from 'next/navigation'
 import { Card, Button, Input, FormGroup } from '@/components/ui'
 import { 
   Plus, Save, Trash2, LayoutList, 
-  CheckCircle2, AlertTriangle, Send, Info, GripVertical,
-  LayoutDashboard, BookOpen
+  CheckCircle2, AlertTriangle, Send, GripVertical,
+  LayoutDashboard, BookOpen, Share2, Check
 } from 'lucide-react'
 import { assessmentService } from '@/lib/services/AssessmentService'
 import { supabase } from '@/lib/supabase'
@@ -23,6 +23,7 @@ export default function EditAssessmentPage() {
   const [questions, setQuestions] = useState<FullQuestion[]>([])
   const [loading, setLoading] = useState(true)
   const [publishing, setPublishing] = useState(false)
+  const [copying, setCopying] = useState(false)
 
   // Form state for adding/editing questions
   const [editingQuestion, setEditingQuestion] = useState<Partial<FullQuestion> | null>(null)
@@ -133,6 +134,14 @@ export default function EditAssessmentPage() {
     }
   }
 
+  const handleShareLink = () => {
+    if (!assessment) return
+    const url = `${window.location.origin}/assessment/${assessment.assessment_code}`
+    navigator.clipboard.writeText(url)
+    setCopying(true)
+    setTimeout(() => setCopying(false), 2000)
+  }
+
   if (loading) return <div className="animate-pulse">Loading editor...</div>
   if (!assessment) return <div>Assessment not found.</div>
 
@@ -162,12 +171,20 @@ export default function EditAssessmentPage() {
         )}
 
         {assessment.is_published && (
-          <Card className="px-6 py-3 bg-teal-50 border-teal-200 flex items-center gap-4">
+          <Card className="px-6 py-3 bg-teal-50 border-teal-200 flex items-center gap-6">
             <div className="flex flex-col">
               <span className="text-[10px] font-bold text-teal-600 uppercase tracking-widest">Access Code</span>
               <span className="text-2xl font-black text-slate-800 tracking-tighter">{assessment.assessment_code}</span>
             </div>
-            <Info size={20} className="text-teal-400" />
+            <div className="h-10 w-[2px] bg-teal-100" />
+            <Button 
+              variant="secondary" 
+              className={`px-4 py-2 h-auto text-xs transition-all ${copying ? 'bg-teal-500 text-white border-teal-500 hover:bg-teal-600' : ''}`}
+              icon={copying ? Check : Share2}
+              onClick={handleShareLink}
+            >
+              {copying ? 'Link Copied' : 'Copy Link'}
+            </Button>
           </Card>
         )}
       </header>

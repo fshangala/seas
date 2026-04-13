@@ -8,30 +8,20 @@ import { assessmentService } from '@/lib/services/AssessmentService'
 
 export default function Home() {
   const [code, setCode] = useState('')
-  const [studentId, setStudentId] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   const handleEnter = async () => {
-    if (!code || !studentId) return setError('Please enter both Assessment Code and Student ID')
+    if (!code) return setError('Please enter an Assessment Code')
     setLoading(true)
     setError('')
     
     try {
-      const assessment = await assessmentService.getAssessmentByCode(code.toUpperCase())
-      const existingSubmission = await assessmentService.getSubmission(assessment.id, studentId)
-
-      if (existingSubmission && existingSubmission.client_end_time) {
-        // Already submitted, show results
-        router.push(`/candidate/results/${studentId}`)
-      } else {
-        // Start or continue assessment
-        // We'll pass studentId in the URL to simplify the next page
-        router.push(`/assessment/${code.toUpperCase()}?studentId=${studentId}`)
-      }
+      await assessmentService.getAssessmentByCode(code.toUpperCase())
+      router.push(`/assessment/${code.toUpperCase()}`)
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Assessment not found or connection error'
+      const message = err instanceof Error ? err.message : 'Assessment not found'
       setError(message)
     } finally {
       setLoading(false)
@@ -65,27 +55,21 @@ export default function Home() {
             <div className="flex flex-col gap-4">
               <h2 className="text-2xl font-bold text-slate-800">Candidate Entrance</h2>
               <p className="text-slate-500 font-medium leading-relaxed">
-                Enter your details to begin or view results. Protected by the SEAS Integrity Engine.
+                Enter your Assessment Code to begin or continue your evaluation.
               </p>
             </div>
             <div className="flex flex-col gap-4">
               <input 
                 type="text" 
-                placeholder="Student ID" 
-                className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-teal-500 outline-hidden bg-white font-bold text-lg"
-                value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
-              />
-              <input 
-                type="text" 
                 placeholder="Assessment Code (e.g. EXAM-2024)" 
-                className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-teal-500 outline-hidden bg-white font-bold tracking-widest text-lg uppercase"
+                className="w-full p-6 rounded-2xl border-2 border-slate-100 focus:border-teal-500 outline-hidden bg-white font-black tracking-widest text-2xl uppercase text-center"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleEnter()}
               />
-              {error && <p className="text-red-500 font-bold text-sm px-2">{error}</p>}
-              <Button onClick={handleEnter} disabled={loading} className="py-4 text-lg">
-                {loading ? 'Verifying...' : 'Enter Assessment'}
+              {error && <p className="text-red-500 font-bold text-sm px-2 text-center">{error}</p>}
+              <Button onClick={handleEnter} disabled={loading} className="py-5 text-xl">
+                {loading ? 'Verifying...' : 'Enter Assessment Room'}
               </Button>
             </div>
           </Card>

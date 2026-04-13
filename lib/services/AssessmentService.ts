@@ -1,6 +1,13 @@
 import { supabase } from '../supabase'
-import { idb, IDBResponse } from '../idb'
+import { idb } from '../idb'
 import { Tables } from '../types/database.types'
+
+export type SubmissionWithAssessment = Tables<'submissions'> & {
+  assessments: {
+    title: string
+    assessment_code: string
+  }
+}
 
 export class AssessmentService {
   async getAssessmentByCode(code: string) {
@@ -29,7 +36,8 @@ export class AssessmentService {
 
     // 3. Cache in IndexedDB
     await idb.init()
-    const db = (idb as any).db as IDBDatabase
+    const db = idb.db
+    if (!db) throw new Error('Database not initialized')
     const transaction = db.transaction(['assessment_cache'], 'readwrite')
     const store = transaction.objectStore('assessment_cache')
     store.put(fullAssessment)
@@ -38,9 +46,13 @@ export class AssessmentService {
   }
 
   async startSubmission(assessmentId: string, studentId: string) {
+    // Check if submission already exists
+    const existing = await this.getSubmission(assessmentId, studentId)
+    if (existing) return existing
+
     const { data, error } = await supabase
       .from('submissions')
-      .upsert({
+      .insert({
         assessment_id: assessmentId,
         student_id: studentId,
         client_start_time: new Date().toISOString(),
@@ -51,6 +63,29 @@ export class AssessmentService {
 
     if (error) throw error
     return data
+  }
+
+  async getSubmission(assessmentId: string, studentId: string) {
+    const { data, error } = await supabase
+      .from('submissions')
+      .select('*')
+      .eq('assessment_id', assessmentId)
+      .eq('student_id', studentId)
+      .maybeSingle()
+
+    if (error) throw error
+    return data
+  }
+
+  async getSubmissionsByStudent(studentId: string): Promise<SubmissionWithAssessment[]> {
+    const { data, error } = await supabase
+      .from('submissions')
+      .select('*, assessments(title, assessment_code)')
+      .eq('student_id', studentId)
+      .order('server_received_at', { ascending: false })
+
+    if (error) throw error
+    return data as unknown as SubmissionWithAssessment[]
   }
 
   async syncResponses(submissionId: string) {

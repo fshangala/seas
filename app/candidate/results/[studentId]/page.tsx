@@ -2,13 +2,13 @@
 
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { assessmentService } from '@/lib/services/AssessmentService'
+import { assessmentService, SubmissionWithAssessment } from '@/lib/services/AssessmentService'
 import { Card, Button } from '@/components/ui'
 import { BookOpen, CheckCircle, Clock, ChevronRight, LayoutDashboard } from 'lucide-react'
 
 export default function CandidateResultsPage() {
   const { studentId } = useParams()
-  const [submissions, setSubmissions] = useState<any[]>([])
+  const [submissions, setSubmissions] = useState<SubmissionWithAssessment[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -45,7 +45,7 @@ export default function CandidateResultsPage() {
           <Card className="text-center p-12">
             <BookOpen size={48} className="mx-auto text-slate-300 mb-4" />
             <h2 className="text-xl font-bold text-slate-800">No assessments found</h2>
-            <p className="text-slate-500 mt-2">You haven't taken any assessments yet.</p>
+            <p className="text-slate-500 mt-2">You haven&apos;t taken any assessments yet.</p>
           </Card>
         ) : (
           <div className="grid gap-4">

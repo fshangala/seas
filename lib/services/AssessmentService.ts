@@ -1,6 +1,13 @@
 import { supabase } from '../supabase'
-import { idb, IDBResponse } from '../idb'
+import { idb } from '../idb'
 import { Tables } from '../types/database.types'
+
+export type SubmissionWithAssessment = Tables<'submissions'> & {
+  assessments: {
+    title: string
+    assessment_code: string
+  }
+}
 
 export class AssessmentService {
   async getAssessmentByCode(code: string) {
@@ -29,7 +36,8 @@ export class AssessmentService {
 
     // 3. Cache in IndexedDB
     await idb.init()
-    const db = (idb as any).db as IDBDatabase
+    const db = idb.db
+    if (!db) throw new Error('Database not initialized')
     const transaction = db.transaction(['assessment_cache'], 'readwrite')
     const store = transaction.objectStore('assessment_cache')
     store.put(fullAssessment)
@@ -69,7 +77,7 @@ export class AssessmentService {
     return data
   }
 
-  async getSubmissionsByStudent(studentId: string) {
+  async getSubmissionsByStudent(studentId: string): Promise<SubmissionWithAssessment[]> {
     const { data, error } = await supabase
       .from('submissions')
       .select('*, assessments(title, assessment_code)')
@@ -77,7 +85,7 @@ export class AssessmentService {
       .order('server_received_at', { ascending: false })
 
     if (error) throw error
-    return data
+    return data as unknown as SubmissionWithAssessment[]
   }
 
   async syncResponses(submissionId: string) {

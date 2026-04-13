@@ -52,8 +52,9 @@ export default function RegisterPage() {
           router.push('/login')
         }, 3000)
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to register')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to register'
+      setError(message)
     } finally {
       setLoading(false)
     }

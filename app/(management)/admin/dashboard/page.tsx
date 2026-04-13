@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { Card, StatsCard } from '@/components/ui'
 import { Users, ShieldCheck, Activity, Database, ChevronRight, UserPlus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { Tables } from '@/lib/types/database.types'
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -11,7 +12,7 @@ export default function AdminDashboard() {
     totalAssessments: 0,
     systemLogs: 0
   })
-  const [recentLogs, setRecentLogs] = useState<any[]>([])
+  const [recentLogs, setRecentLogs] = useState<Tables<'audit_logs'>[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -109,7 +110,9 @@ export default function AdminDashboard() {
                         {log.entity_type}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-400 text-sm">{new Date(log.created_at).toLocaleString()}</td>
+                    <td className="px-6 py-4 text-slate-400 text-sm">
+                      {log.created_at ? new Date(log.created_at).toLocaleString() : 'N/A'}
+                    </td>
                   </tr>
                 ))}
                 {recentLogs.length === 0 && (

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { Card, Button } from '@/components/ui'
 import { Plus, BookOpen, Clock, Users, ChevronRight, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { Tables } from '@/lib/types/database.types'
 
 export default function ExaminerDashboard() {
   const [stats, setStats] = useState({
@@ -11,7 +12,7 @@ export default function ExaminerDashboard() {
     totalSubmissions: 0,
     pendingGrading: 0
   })
-  const [recentAssessments, setRecentAssessments] = useState<any[]>([])
+  const [recentAssessments, setRecentAssessments] = useState<Tables<'assessments'>[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -55,7 +56,7 @@ export default function ExaminerDashboard() {
       <header className="flex items-center justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="text-4xl font-black text-slate-800 tracking-tight">Examiner Dashboard</h1>
-          <p className="text-slate-500 font-medium">Welcome back. Here is what's happening today.</p>
+          <p className="text-slate-500 font-medium">Welcome back. Here is what&apos;s happening today.</p>
         </div>
         <Button icon={Plus}>Create New Assessment</Button>
       </header>
@@ -126,7 +127,7 @@ export default function ExaminerDashboard() {
             <h2 className="text-xl font-bold">System Insights</h2>
           </div>
           <p className="text-slate-300 text-sm font-medium leading-relaxed italic opacity-80">
-            "Candidate activity usually peaks between 10 AM and 2 PM. Ensure the sync engine is monitoring traffic during these windows."
+            &quot;Candidate activity usually peaks between 10 AM and 2 PM. Ensure the sync engine is monitoring traffic during these windows.&quot;
           </p>
           <div className="mt-4 pt-6 border-t border-white/10 flex flex-col gap-4">
             <div className="flex items-center justify-between">

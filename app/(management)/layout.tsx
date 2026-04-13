@@ -3,12 +3,13 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { Button } from '@/components/ui'
 import { ShieldCheck, LogOut, LayoutDashboard, BookOpen, Users, ClipboardCheck } from 'lucide-react'
+import { User } from '@supabase/supabase-js'
+import { Tables } from '@/lib/types/database.types'
 
 export default function ManagementLayout({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<Tables<'profiles'> | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
@@ -33,7 +34,7 @@ export default function ManagementLayout({ children }: { children: React.ReactNo
       // Role Check
       if (pathname.startsWith('/admin') && profile?.role !== 'admin') {
         router.push('/examiner/dashboard')
-      } else if (pathname.startsWith('/examiner') && !['admin', 'examiner'].includes(profile?.role)) {
+      } else if (pathname.startsWith('/examiner') && !['admin', 'examiner'].includes(profile?.role || '')) {
         router.push('/')
       }
 
@@ -47,7 +48,7 @@ export default function ManagementLayout({ children }: { children: React.ReactNo
     router.push('/login')
   }
 
-  if (loading) return <div className="flex-1 flex items-center justify-center font-bold text-teal-600 animate-pulse">Verifying Credentials...</div>
+  if (loading || !profile) return <div className="flex-1 flex items-center justify-center font-bold text-teal-600 animate-pulse">Verifying Credentials...</div>
 
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, href: `/${profile.role}/dashboard` },

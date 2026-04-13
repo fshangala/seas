@@ -37,8 +37,9 @@ export default function LoginPage() {
       } else {
         router.push('/examiner/dashboard')
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to sign in')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to sign in'
+      setError(message)
     } finally {
       setLoading(false)
     }

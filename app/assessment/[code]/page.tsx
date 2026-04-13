@@ -5,8 +5,8 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useAssessment } from '@/lib/viewmodels/AssessmentContext'
 import { assessmentService } from '@/lib/services/AssessmentService'
 import { QuestionRenderer } from '@/components/QuestionRenderer'
-import { Button, Card, FAB } from '@/components/ui'
-import { idb } from '@/lib/idb'
+import { Button, FAB } from '@/components/ui'
+import { idb, IDBResponse } from '@/lib/idb'
 import { ChevronLeft, ChevronRight, Send, Wifi, WifiOff, ShieldCheck } from 'lucide-react'
 
 export default function AssessmentPage() {
@@ -52,12 +52,16 @@ export default function AssessmentPage() {
     loadData()
   }, [code, studentId, dispatch, router])
 
-  const handleResponse = (value: any) => {
+  const handleResponse = (value: Partial<IDBResponse>) => {
+    if (!state.assessment) return
     const question = state.assessment.questions[state.currentQuestionIndex]
-    const response = {
+    const response: IDBResponse = {
       question_id: question.id,
       submission_id: state.submissionId!,
-      ...value,
+      selected_option_id: value.selected_option_id,
+      text_value: value.text_value,
+      image_response_blob: value.image_response_blob,
+      image_response_url: value.image_response_url,
       synced: false,
       updated_at: Date.now()
     }
@@ -72,7 +76,7 @@ export default function AssessmentPage() {
         await assessmentService.completeSubmission(state.submissionId!)
         alert('Assessment submitted successfully!')
         router.push(`/candidate/results/${studentId}`)
-      } catch (err) {
+      } catch {
         alert('Failed to submit. Your progress is saved offline. Please reconnect to sync.')
       }
     }
@@ -80,7 +84,7 @@ export default function AssessmentPage() {
 
   if (loading) return <div className="flex-1 flex items-center justify-center font-bold text-teal-600 animate-pulse">Initializing SEAS Environment...</div>
 
-  if (!isStarted) return null
+  if (!isStarted || !state.assessment) return null
 
   const currentQuestion = state.assessment.questions[state.currentQuestionIndex]
   const currentResponse = state.responses[currentQuestion.id]

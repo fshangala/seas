@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button, Card } from '@/components/ui'
 import { ShieldCheck, BookOpen, Clock, Fingerprint } from 'lucide-react'
+import { assessmentService } from '@/lib/services/AssessmentService'
 
 export default function Home() {
   const [code, setCode] = useState('')
@@ -29,8 +30,9 @@ export default function Home() {
         // We'll pass studentId in the URL to simplify the next page
         router.push(`/assessment/${code.toUpperCase()}?studentId=${studentId}`)
       }
-    } catch (err: any) {
-      setError(err.message || 'Assessment not found or connection error')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Assessment not found or connection error'
+      setError(message)
     } finally {
       setLoading(false)
     }

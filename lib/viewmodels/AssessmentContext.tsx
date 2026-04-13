@@ -1,24 +1,31 @@
 'use client'
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react'
-import { idb, IDBResponse } from '../idb'
+import { idb, IDBResponse, IDBLog } from '../idb'
 import { assessmentService } from '../services/AssessmentService'
+import { Tables } from '../types/database.types'
+
+export type FullAssessment = Tables<'assessments'> & {
+  questions: (Tables<'questions'> & {
+    options: Tables<'options'>[]
+  })[]
+}
 
 type State = {
-  assessment: any | null
+  assessment: FullAssessment | null
   submissionId: string | null
   currentQuestionIndex: number
   responses: Record<string, IDBResponse>
-  proctoringLogs: any[]
+  proctoringLogs: IDBLog[]
   isOffline: boolean
 }
 
 type Action =
-  | { type: 'SET_ASSESSMENT'; payload: any }
+  | { type: 'SET_ASSESSMENT'; payload: FullAssessment }
   | { type: 'SET_SUBMISSION_ID'; payload: string }
   | { type: 'SET_QUESTION_INDEX'; payload: number }
   | { type: 'SAVE_RESPONSE'; payload: IDBResponse }
-  | { type: 'ADD_LOG'; payload: any }
+  | { type: 'ADD_LOG'; payload: IDBLog }
   | { type: 'SET_OFFLINE'; payload: boolean }
 
 const AssessmentContext = createContext<{

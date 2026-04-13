@@ -1,11 +1,24 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import { Card } from './ui'
 import { IDBResponse } from '../lib/idb'
 
+export type Option = {
+  id: string
+  content: string
+}
+
+export type Question = {
+  id: string
+  question_type: 'mcq' | 'short_answer' | 'paragraph' | 'essay' | 'image_upload' | string | null
+  content: string
+  options?: Option[]
+}
+
 type Props = {
-  question: any
+  question: Question
   response?: IDBResponse
   onResponse: (value: Partial<IDBResponse>) => void
 }
@@ -14,11 +27,21 @@ export function QuestionRenderer({ question, response, onResponse }: Props) {
   const { question_type, content, options, id } = question
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
-    onResponse({ text_value: e.target.value, synced: false, updated_at: Date.now() })
+    const now = Date.now()
+    onResponse({ 
+      text_value: e.target.value, 
+      synced: false, 
+      updated_at: now 
+    })
   }
 
-  const handleOptionChange = (optionId: string) => {
-    onResponse({ selected_option_id: optionId, synced: false, updated_at: Date.now() })
+  const handleOptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const now = Date.now()
+    onResponse({ 
+      selected_option_id: e.target.value, 
+      synced: false, 
+      updated_at: now 
+    })
   }
 
   return (
@@ -27,9 +50,9 @@ export function QuestionRenderer({ question, response, onResponse }: Props) {
         {content}
       </div>
 
-      {question_type === 'mcq' && (
+      {question_type === 'mcq' && options && (
         <div className="flex flex-col gap-3">
-          {options.map((opt: any) => (
+          {options.map((opt) => (
             <label 
               key={opt.id}
               className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
@@ -41,9 +64,10 @@ export function QuestionRenderer({ question, response, onResponse }: Props) {
               <input 
                 type="radio" 
                 name={id} 
+                value={opt.id}
                 className="w-5 h-5 accent-teal-600"
                 checked={response?.selected_option_id === opt.id}
-                onChange={() => handleOptionChange(opt.id)}
+                onChange={handleOptionChange}
               />
               <span className="font-medium">{opt.content}</span>
             </label>
@@ -79,7 +103,15 @@ export function QuestionRenderer({ question, response, onResponse }: Props) {
             <p className="text-sm mt-2">(Supports PNG, JPG, JPEG)</p>
           </div>
           {response?.image_response_url && (
-            <img src={response.image_response_url} alt="Response" className="rounded-2xl shadow-lg border border-slate-200" />
+            <div className="relative w-full h-64">
+              <Image 
+                src={response.image_response_url} 
+                alt="Response" 
+                fill
+                className="rounded-2xl shadow-lg border border-slate-200 object-contain"
+                unoptimized
+              />
+            </div>
           )}
         </div>
       )}

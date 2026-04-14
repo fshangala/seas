@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button, Card } from '@/components/ui'
-import { ShieldCheck, BookOpen, Clock, Fingerprint } from 'lucide-react'
+import { ShieldCheck, BookOpen, Clock, Fingerprint, LayoutDashboard } from 'lucide-react'
 import { assessmentService } from '@/lib/services/AssessmentService'
 
 export default function Home() {
@@ -33,13 +33,22 @@ export default function Home() {
       <div className="max-w-4xl w-full flex flex-col gap-12">
         {/* Hero Section */}
         <div className="text-center flex flex-col items-center gap-6 relative">
-          <button 
-            onClick={() => router.push('/login')}
-            className="absolute -top-4 -right-4 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-all uppercase tracking-widest cursor-pointer"
-          >
-            <ShieldCheck size={14} />
-            Staff Portal
-          </button>
+          <div className="absolute -top-4 -right-4 flex flex-col sm:flex-row items-center gap-2">
+            <button 
+              onClick={() => router.push('/candidate/dashboard')}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-all uppercase tracking-widest cursor-pointer whitespace-nowrap"
+            >
+              <LayoutDashboard size={14} />
+              My Dashboard
+            </button>
+            <button 
+              onClick={() => router.push('/login')}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-all uppercase tracking-widest cursor-pointer whitespace-nowrap"
+            >
+              <ShieldCheck size={14} />
+              Staff Portal
+            </button>
+          </div>
           <div className="w-24 h-24 teal-gradient rounded-3xl rotate-12 flex items-center justify-center text-white shadow-2xl">
             <ShieldCheck size={48} className="-rotate-12" />
           </div>

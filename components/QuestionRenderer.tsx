@@ -45,17 +45,17 @@ export function QuestionRenderer({ question, response, onResponse }: Props) {
   }
 
   return (
-    <Card className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="text-xl font-semibold text-slate-800 leading-relaxed">
+    <Card className="flex flex-col gap-4 md:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 p-6 md:p-10">
+      <div className="text-lg md:text-xl font-semibold text-slate-800 leading-relaxed">
         {content}
       </div>
 
       {question_type === 'mcq' && options && (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2 md:gap-3">
           {options.map((opt) => (
             <label 
               key={opt.id}
-              className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+              className={`flex items-center gap-3 md:gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                 response?.selected_option_id === opt.id 
                   ? 'border-teal-500 bg-teal-50 text-teal-700' 
                   : 'border-slate-100 hover:border-slate-200 bg-slate-50'
@@ -65,11 +65,11 @@ export function QuestionRenderer({ question, response, onResponse }: Props) {
                 type="radio" 
                 name={id} 
                 value={opt.id}
-                className="w-5 h-5 accent-teal-600"
+                className="w-5 h-5 accent-teal-600 shrink-0"
                 checked={response?.selected_option_id === opt.id}
                 onChange={handleOptionChange}
               />
-              <span className="font-medium">{opt.content}</span>
+              <span className="font-medium text-sm md:text-base">{opt.content}</span>
             </label>
           ))}
         </div>
@@ -78,7 +78,7 @@ export function QuestionRenderer({ question, response, onResponse }: Props) {
       {(question_type === 'short_answer') && (
         <input 
           type="text"
-          className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 outline-hidden transition-all bg-slate-50 font-medium"
+          className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 outline-hidden transition-all bg-slate-50 font-medium text-sm md:text-base"
           placeholder="Type your answer here..."
           value={response?.text_value || ''}
           onChange={handleChange}
@@ -88,7 +88,7 @@ export function QuestionRenderer({ question, response, onResponse }: Props) {
       {(question_type === 'paragraph' || question_type === 'essay') && (
         <textarea 
           rows={question_type === 'essay' ? 12 : 6}
-          className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 outline-hidden transition-all bg-slate-50 font-medium resize-none leading-relaxed"
+          className="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 outline-hidden transition-all bg-slate-50 font-medium resize-none leading-relaxed text-sm md:text-base"
           placeholder="Start writing your response..."
           value={response?.text_value || ''}
           onChange={handleChange}

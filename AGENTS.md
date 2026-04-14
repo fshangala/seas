@@ -40,6 +40,9 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - [x] Proctoring Integrity Engine (Copy/Paste block & Tab-switch tracking).
 - [x] **Management Dashboard**: Staff login, registration, and RBAC implementation.
 - [x] **Assessment Management**: Draft creation, metadata editing, question management, duplication logic, and read-only publication.
+- [x] **Candidate Dashboard**: History tracking, in-progress resume, and URL-based Student ID path structure.
+- [x] **Results Detail Page**: Performance summary and grading status for completed assessments.
+- [x] **Mobile Responsiveness**: Adaptive UI for candidates taking assessments on mobile devices.
 
 ### Pending Features (Next Steps)
 - [ ] **Image Upload Logic**: Handle handwritten work as Blobs in IDB and sync to Supabase Storage.

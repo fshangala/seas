@@ -40,6 +40,8 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - [x] Proctoring Integrity Engine (Copy/Paste block & Tab-switch tracking).
 - [x] **Management Dashboard**: Staff login, registration, and RBAC implementation.
 - [x] **Assessment Management**: Draft creation, metadata editing, question management, duplication logic, and read-only publication.
+- [x] **Marking Key Management**: Define correct answers, auto-marking rules, and grading notes for published assessments.
+- [x] **Manual Grading Interface**: UI for examiners to review and grade essays and image uploads with toggleable marking keys.
 - [x] **Candidate Dashboard**: History tracking, in-progress resume, and URL-based Student ID path structure.
 - [x] **Results Detail Page**: Performance summary and grading status for completed assessments.
 - [x] **Mobile Responsiveness**: Adaptive UI for candidates taking assessments on mobile devices.
@@ -49,4 +51,3 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - [ ] **Audit Log Syncing**: Push local proctoring logs to Supabase `audit_logs` table.
 - [ ] **Auto-Marking Engine**: Apply the Postgres trigger for MCQ and Short Answer validation.
 - [ ] **Offline Reliability**: Verify PWA service worker caching for full offline landing-to-submission flow.
-- [ ] **Manual Grading Interface**: UI for examiners to review and grade essays and image uploads.

@@ -1,0 +1,131 @@
+'use client'
+
+import React, { useEffect, useState, use } from 'react'
+import { Card, Button } from '@/components/ui'
+import { assessmentService } from '@/lib/services/AssessmentService'
+import { useRouter } from 'next/navigation'
+import { ChevronLeft, User, Clock, CheckCircle2, AlertCircle, Eye } from 'lucide-react'
+import { format } from 'date-fns'
+
+import { Tables } from '@/lib/types/database.types'
+
+export default function AssessmentSubmissions({ params }: { params: Promise<{ id: string }> }) {
+  const router = useRouter()
+  const { id } = use(params)
+  const [submissions, setSubmissions] = useState<Tables<'submissions'>[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await assessmentService.getSubmissions(id)
+        setSubmissions(data || [])
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [id])
+
+  if (loading) return <div className="animate-pulse space-y-4">
+    <div className="h-12 w-64 bg-slate-200 rounded-2xl" />
+    {[1, 2, 3].map(i => <div key={i} className="h-20 bg-slate-200 rounded-2xl" />)}
+  </div>
+
+  return (
+    <div className="flex flex-col gap-12">
+      <header className="flex items-center justify-between">
+        <div className="flex flex-col gap-1">
+          <button 
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-slate-400 hover:text-teal-600 transition-colors font-bold text-xs uppercase tracking-widest mb-2"
+          >
+            <ChevronLeft size={16} />
+            Back to Marking
+          </button>
+          <h1 className="text-4xl font-black text-slate-800 tracking-tight">Submissions</h1>
+          <p className="text-slate-500 font-medium">Review and grade candidate attempts for this assessment.</p>
+        </div>
+      </header>
+
+      <div className="flex flex-col gap-4">
+        {submissions.length === 0 ? (
+          <Card className="p-12 flex flex-col items-center justify-center text-center gap-4 border-dashed">
+            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
+              <User size={32} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-slate-800">No Submissions Yet</h3>
+              <p className="text-slate-500">Candidates have not submitted their attempts for this assessment.</p>
+            </div>
+          </Card>
+        ) : (
+          <div className="overflow-hidden bg-white border border-slate-200 rounded-2xl shadow-sm">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Candidate</th>
+                  <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Time Submitted</th>
+                  <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
+                  <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Score</th>
+                  <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {submissions.map((s) => (
+                  <tr key={s.id} className="hover:bg-slate-50/50 transition-colors group">
+                    <td className="p-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
+                          {s.student_id.substring(0, 2).toUpperCase()}
+                        </div>
+                        <span className="font-bold text-slate-700">{s.student_id}</span>
+                      </div>
+                    </td>
+                    <td className="p-6">
+                      <div className="flex items-center gap-2 text-slate-500">
+                        <Clock size={14} />
+                        <span className="text-sm font-medium">
+                          {s.server_received_at ? format(new Date(s.server_received_at), 'MMM d, p') : 'Pending'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-6">
+                      {s.grading_status === 'completed' ? (
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-teal-50 text-teal-600 rounded-full">
+                          <CheckCircle2 size={12} />
+                          <span className="text-[10px] font-black uppercase tracking-widest">Graded</span>
+                        </div>
+                      ) : (
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-50 text-orange-600 rounded-full">
+                          <AlertCircle size={12} />
+                          <span className="text-[10px] font-black uppercase tracking-widest">Pending</span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-6 text-right">
+                      <span className="font-black text-slate-800">
+                        {s.grading_status === 'completed' ? `${s.total_score}` : '-'}
+                      </span>
+                    </td>
+                    <td className="p-6 text-right">
+                      <Button 
+                        variant="secondary" 
+                        icon={Eye}
+                        onClick={() => router.push(`/examiner/marking/${id}/submissions/${s.id}`)}
+                      >
+                        Grade
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

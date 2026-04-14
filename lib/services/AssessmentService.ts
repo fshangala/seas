@@ -3,10 +3,7 @@ import { idb } from '../idb'
 import { Tables } from '../types/database.types'
 
 export type SubmissionWithAssessment = Tables<'submissions'> & {
-  assessments: {
-    title: string
-    assessment_code: string
-  }
+  assessments: Tables<'assessments'>
 }
 
 export class AssessmentService {
@@ -86,6 +83,18 @@ export class AssessmentService {
 
     if (error) throw error
     return data as unknown as SubmissionWithAssessment[]
+  }
+
+  async getSubmissionDetails(studentId: string, assessmentId: string): Promise<SubmissionWithAssessment> {
+    const { data, error } = await supabase
+      .from('submissions')
+      .select('*, assessments(title, assessment_code, description, duration_minutes)')
+      .eq('student_id', studentId)
+      .eq('assessment_id', assessmentId)
+      .single()
+
+    if (error) throw error
+    return data as unknown as SubmissionWithAssessment
   }
 
   async syncResponses(submissionId: string) {

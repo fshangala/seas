@@ -59,7 +59,11 @@ export default function MarkingDashboard() {
         ) : (
           assessments.map((a) => {
             const isExpanded = expandedId === a.id
-            const hasMarkingKey = a.questions?.some((q) => q.marking_keys?.length > 0)
+            const hasMarkingKey = a.questions?.some((q) => {
+              const mk = q.marking_keys
+              if (!mk) return false
+              return Array.isArray(mk) ? mk.length > 0 : true
+            })
             
             return (
               <Card 

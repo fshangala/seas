@@ -31,7 +31,9 @@ export default function ManageMarkingKey({ params }: { params: Promise<{ id: str
         // Initialize marking keys state
         const initialKeys: Record<string, Partial<Tables<'marking_keys'>>> = {}
         typedData.forEach((q) => {
-          const key = q.marking_keys?.[0] || {
+          const mk = q.marking_keys
+          const existingKey = Array.isArray(mk) ? mk[0] : mk
+          const key = existingKey || {
             question_id: q.id,
             correct_option_id: null,
             correct_text_match: '',

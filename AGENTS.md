@@ -47,7 +47,7 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - [x] **Mobile Responsiveness**: Adaptive UI for candidates taking assessments on mobile devices.
 
 ### Pending Features (Next Steps)
-- [ ] **Image Upload Logic**: Handle handwritten work as Blobs in IDB and sync to Supabase Storage.
-- [ ] **Audit Log Syncing**: Push local proctoring logs to Supabase `audit_logs` table.
-- [ ] **Auto-Marking Engine**: Apply the Postgres trigger for MCQ and Short Answer validation.
+- [x] **Image Upload Logic**: Handle handwritten work as Blobs in IDB and sync to Supabase Storage.
+- [x] **Audit Log Syncing**: Push local proctoring logs to Supabase `audit_logs` table.
+- [x] **Auto-Marking Engine**: Apply the Postgres trigger for MCQ and Short Answer validation.
 - [ ] **Offline Reliability**: Verify PWA service worker caching for full offline landing-to-submission flow.

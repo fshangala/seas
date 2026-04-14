@@ -120,7 +120,7 @@ export default function GradeSubmission({ params }: { params: Promise<{ id: stri
           <div className="flex flex-col gap-8 pb-20">
           {submission?.responses.map((resp, index) => {
           const q = resp.questions
-          const key = q.marking_keys?.[0]
+          const key = Array.isArray(q.marking_keys) ? q.marking_keys[0] : (q.marking_keys as any)
           const isMcq = q.question_type === 'mcq'
           const currentGrade = grades[resp.id]
 

@@ -1,3 +1,10 @@
+<!-- BEGIN:nextjs-agent-rules -->
+# Next.js Coding Rules
+This version of Next.js may have breaking changes or conventions that differ from your training data. 
+Before writing code, read the relevant guide in `node_modules/next/dist/docs/`.
+Heed all deprecation notices and favor modern patterns (App Router, Server Components).
+<!-- END:nextjs-agent-rules -->
+
 # SEAS Agent Instructions
 
 This document provides foundational mandates for AI agents working on the SEAS project.
@@ -40,13 +47,15 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - [x] Proctoring Integrity Engine (Copy/Paste block & Tab-switch tracking).
 - [x] **Management Dashboard**: Staff login, registration, and RBAC implementation.
 - [x] **Assessment Management**: Draft creation, metadata editing, question management, duplication logic, and read-only publication.
+- [x] **JSON Bulk Operations**: Upload questions via JSON and clear all questions functionality.
+- [x] **Marking Key Management**: Define correct answers, auto-marking rules, and grading notes for published assessments.
+- [x] **Manual Grading Interface**: UI for examiners to review and grade essays and image uploads with toggleable marking keys.
 - [x] **Candidate Dashboard**: History tracking, in-progress resume, and URL-based Student ID path structure.
 - [x] **Results Detail Page**: Performance summary and grading status for completed assessments.
 - [x] **Mobile Responsiveness**: Adaptive UI for candidates taking assessments on mobile devices.
 
 ### Pending Features (Next Steps)
-- [ ] **Image Upload Logic**: Handle handwritten work as Blobs in IDB and sync to Supabase Storage.
-- [ ] **Audit Log Syncing**: Push local proctoring logs to Supabase `audit_logs` table.
-- [ ] **Auto-Marking Engine**: Apply the Postgres trigger for MCQ and Short Answer validation.
+- [x] **Image Upload Logic**: Handle handwritten work as Blobs in IDB and sync to Supabase Storage.
+- [x] **Audit Log Syncing**: Push local proctoring logs to Supabase `audit_logs` table.
+- [x] **Auto-Marking Engine**: Apply the Postgres trigger for MCQ and Short Answer validation.
 - [ ] **Offline Reliability**: Verify PWA service worker caching for full offline landing-to-submission flow.
-- [ ] **Manual Grading Interface**: UI for examiners to review and grade essays and image uploads.

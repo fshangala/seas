@@ -6,6 +6,13 @@ export type SubmissionWithAssessment = Tables<'submissions'> & {
   assessments: Tables<'assessments'>
 }
 
+export interface BulkQuestion {
+  content: string
+  question_type: string
+  marks_possible: number
+  options?: string[]
+}
+
 export class AssessmentService {
   async getAssessmentByCode(code: string) {
     // 1. Fetch Assessment
@@ -306,6 +313,39 @@ export class AssessmentService {
     if (error) throw error
   }
 
+  async clearQuestions(assessmentId: string) {
+    const { error } = await supabase
+      .from('questions')
+      .delete()
+      .eq('assessment_id', assessmentId)
+    
+    if (error) throw error
+  }
+
+  async addQuestionsBulk(assessmentId: string, questions: BulkQuestion[]) {
+    // Get current max order_index
+    const { data: existingQ } = await supabase
+      .from('questions')
+      .select('order_index')
+      .eq('assessment_id', assessmentId)
+      .order('order_index', { ascending: false })
+      .limit(1)
+    
+    let nextIndex = 0
+    if (existingQ && existingQ.length > 0 && existingQ[0].order_index !== null) {
+      nextIndex = existingQ[0].order_index + 1
+    }
+
+    for (const q of questions) {
+      await this.addQuestion(assessmentId, {
+        content: q.content,
+        question_type: q.question_type,
+        marks_possible: q.marks_possible,
+        order_index: nextIndex++
+      }, q.options)
+    }
+  }
+
   async completeSubmission(submissionId: string) {
     const { error } = await supabase
       .from('submissions')
@@ -315,6 +355,106 @@ export class AssessmentService {
       .eq('id', submissionId)
 
     if (error) throw error
+  }
+
+  async getPublishedAssessments() {
+    const { data, error } = await supabase
+      .from('assessments')
+      .select('*, questions(id, content, question_type, marks_possible, marking_keys(id))')
+      .eq('is_published', true)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data
+  }
+
+  async getMarkingKeys(assessmentId: string) {
+    const { data: questions, error: qError } = await supabase
+      .from('questions')
+      .select('id, content, question_type, options(*), marking_keys(*)')
+      .eq('assessment_id', assessmentId)
+      .order('order_index', { ascending: true })
+
+    if (qError) throw qError
+    return questions
+  }
+
+  async saveMarkingKeys(keys: Partial<Tables<'marking_keys'>>[]) {
+    for (const key of keys) {
+      if (!key.question_id) continue
+      
+      const { error } = await supabase
+        .from('marking_keys')
+        .upsert(key, { onConflict: 'question_id' })
+      if (error) throw error
+    }
+  }
+
+  async getSubmissions(assessmentId: string) {
+    const { data, error } = await supabase
+      .from('submissions')
+      .select('*')
+      .eq('assessment_id', assessmentId)
+      .order('server_received_at', { ascending: false })
+
+    if (error) throw error
+    return data
+  }
+
+  async getSubmissionWithResponses(submissionId: string) {
+    const { data: submission, error: sError } = await supabase
+      .from('submissions')
+      .select('*, assessments(*)')
+      .eq('id', submissionId)
+      .single()
+    
+    if (sError) throw sError
+
+    const { data: responses, error: rError } = await supabase
+      .from('responses')
+      .select('*, questions(*, options(*), marking_keys(*))')
+      .eq('submission_id', submissionId)
+
+    if (rError) throw rError
+
+    return {
+      ...submission,
+      responses: responses || []
+    }
+  }
+
+  async saveGrades(submissionId: string, responseGrades: { id: string, marks_awarded: number, is_graded: boolean }[]) {
+    // 1. Update individual responses
+    for (const grade of responseGrades) {
+      const { error } = await supabase
+        .from('responses')
+        .update({
+          marks_awarded: grade.marks_awarded,
+          is_graded: grade.is_graded
+        })
+        .eq('id', grade.id)
+      
+      if (error) throw error
+    }
+
+    // 2. Calculate totals and update submission
+    const manualScore = responseGrades.reduce((acc, curr) => acc + (curr.marks_awarded || 0), 0)
+    
+    // Fetch current auto_score and penalty
+    const { data: sub } = await supabase.from('submissions').select('auto_score, penalty_applied').eq('id', submissionId).single()
+    
+    const totalScore = (sub?.auto_score || 0) + manualScore - (sub?.penalty_applied || 0)
+
+    const { error: subError } = await supabase
+      .from('submissions')
+      .update({
+        manual_score: manualScore,
+        total_score: totalScore,
+        grading_status: 'completed'
+      })
+      .eq('id', submissionId)
+
+    if (subError) throw subError
   }
 }
 

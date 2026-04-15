@@ -50,10 +50,11 @@ export class AssessmentService {
   }
 
   async startSubmission(assessmentId: string, studentId: string) {
-    // Check if submission already exists
+    // 1. Check if submission already exists (pre-emptive check)
     const existing = await this.getSubmission(assessmentId, studentId)
     if (existing) return existing
 
+    // 2. Attempt to insert
     const { data, error } = await supabase
       .from('submissions')
       .insert({
@@ -65,7 +66,13 @@ export class AssessmentService {
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      // 3. Handle race condition: if it was created between our check and insert
+      if (error.code === '23505') {
+        return this.getSubmission(assessmentId, studentId)
+      }
+      throw error
+    }
     return data
   }
 

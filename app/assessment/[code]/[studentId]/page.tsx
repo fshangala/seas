@@ -26,6 +26,7 @@ export default function AssessmentExecutionPage() {
 
         // Auto-start or fetch existing submission
         const submission = await assessmentService.startSubmission(assessment.id, studentId as string)
+        if (!submission) throw new Error('Could not initialize submission session')
         dispatch({ type: 'SET_SUBMISSION_ID', payload: submission.id })
 
         // Load local responses for THIS submission

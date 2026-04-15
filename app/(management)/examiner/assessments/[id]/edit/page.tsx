@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Card, Button, Input, FormGroup } from '@/components/ui'
 import { 
   Plus, Save, Trash2, LayoutList, 
   CheckCircle2, AlertTriangle, Send, GripVertical,
   LayoutDashboard, BookOpen, Share2, Check, Settings, Copy,
-  Clock, FileText
+  Clock, FileText, Upload
 } from 'lucide-react'
 import { assessmentService } from '@/lib/services/AssessmentService'
 import { supabase } from '@/lib/supabase'
@@ -27,6 +27,8 @@ export default function EditAssessmentPage() {
   const [copying, setCopying] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
   const [savingSettings, setSavingSettings] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [clearing, setClearing] = useState(false)
 
   // Settings state
   const [settings, setSettings] = useState({
@@ -38,6 +40,17 @@ export default function EditAssessmentPage() {
 
   // Form state for adding/editing questions
   const [editingQuestion, setEditingQuestion] = useState<Partial<FullQuestion> | null>(null)
+
+  const loadQuestions = useCallback(async () => {
+    const { data: qData, error: qError } = await supabase
+      .from('questions')
+      .select('*, options(*)')
+      .eq('assessment_id', id as string)
+      .order('order_index', { ascending: true })
+
+    if (qError) throw qError
+    setQuestions(qData || [])
+  }, [id])
 
   useEffect(() => {
     async function loadData() {
@@ -56,14 +69,7 @@ export default function EditAssessmentPage() {
           description: aData.description || ''
         })
 
-        const { data: qData, error: qError } = await supabase
-          .from('questions')
-          .select('*, options(*)')
-          .eq('assessment_id', id as string)
-          .order('order_index', { ascending: true })
-
-        if (qError) throw qError
-        setQuestions(qData || [])
+        await loadQuestions()
       } catch (err) {
         console.error(err)
         alert('Failed to load assessment data.')
@@ -72,7 +78,7 @@ export default function EditAssessmentPage() {
       }
     }
     loadData()
-  }, [id])
+  }, [id, loadQuestions])
 
   const handleUpdateSettings = async () => {
     if (!assessment) return
@@ -126,7 +132,7 @@ export default function EditAssessmentPage() {
         })
       } else {
         // Create
-        const qData = await assessmentService.addQuestion(
+        await assessmentService.addQuestion(
           id as string,
           {
             content: editingQuestion.content,
@@ -136,16 +142,8 @@ export default function EditAssessmentPage() {
           },
           editingQuestion.options?.map(o => o.content)
         )
-        
-        // Reload questions to get full data (including options)
-        const { data: newQ } = await supabase
-          .from('questions')
-          .select('*, options(*)')
-          .eq('id', qData.id)
-          .single()
-        
-        if (newQ) setQuestions([...questions, newQ as FullQuestion])
       }
+      await loadQuestions()
       setEditingQuestion(null)
     } catch (err) {
       console.error(err)
@@ -161,6 +159,48 @@ export default function EditAssessmentPage() {
     } catch (err) {
       console.error(err)
     }
+  }
+
+  const handleClearAll = async () => {
+    if (!confirm('Are you sure you want to delete ALL questions? This action cannot be undone.')) return
+    setClearing(true)
+    try {
+      await assessmentService.clearQuestions(id as string)
+      setQuestions([])
+    } catch (err) {
+      console.error(err)
+      alert('Failed to clear questions')
+    } finally {
+      setClearing(false)
+    }
+  }
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = async (e) => {
+      const content = e.target?.result
+      if (typeof content !== 'string') return
+
+      try {
+        const jsonData = JSON.parse(content)
+        if (!Array.isArray(jsonData)) throw new Error('Invalid format: Expected an array of questions')
+        
+        setUploading(true)
+        await assessmentService.addQuestionsBulk(id as string, jsonData)
+        await loadQuestions()
+        alert('Questions uploaded successfully!')
+      } catch (err) {
+        console.error(err)
+        alert(`Failed to upload questions: ${err instanceof Error ? err.message : 'Invalid JSON'}`)
+      } finally {
+        setUploading(false)
+        event.target.value = '' // Reset input
+      }
+    }
+    reader.readAsText(file)
   }
 
   const handlePublish = async () => {
@@ -304,9 +344,40 @@ export default function EditAssessmentPage() {
               <LayoutList className="text-teal-500" />
               Assessment Structure
             </h2>
-            <span className="text-slate-400 font-bold text-sm uppercase tracking-widest">
-              {questions.length} Questions
-            </span>
+            <div className="flex items-center gap-4">
+              {!assessment.is_published && (
+                <>
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="json-upload"
+                  />
+                  <Button 
+                    variant="secondary" 
+                    className="px-3 py-1.5 h-auto text-xs" 
+                    icon={Upload}
+                    onClick={() => document.getElementById('json-upload')?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? 'Uploading...' : 'Upload JSON'}
+                  </Button>
+                  <Button 
+                    variant="secondary" 
+                    className="px-3 py-1.5 h-auto text-xs text-red-500 border-red-100 hover:bg-red-50 hover:border-red-200" 
+                    icon={Trash2}
+                    onClick={handleClearAll}
+                    disabled={clearing || questions.length === 0}
+                  >
+                    {clearing ? 'Clearing...' : 'Clear All'}
+                  </Button>
+                </>
+              )}
+              <span className="text-slate-400 font-bold text-sm uppercase tracking-widest">
+                {questions.length} Questions
+              </span>
+            </div>
           </div>
 
           <div className="flex flex-col gap-4">

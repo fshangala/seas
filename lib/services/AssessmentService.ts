@@ -6,6 +6,13 @@ export type SubmissionWithAssessment = Tables<'submissions'> & {
   assessments: Tables<'assessments'>
 }
 
+export interface BulkQuestion {
+  content: string
+  question_type: string
+  marks_possible: number
+  options?: string[]
+}
+
 export class AssessmentService {
   async getAssessmentByCode(code: string) {
     // 1. Fetch Assessment
@@ -304,6 +311,39 @@ export class AssessmentService {
       .eq('id', id)
     
     if (error) throw error
+  }
+
+  async clearQuestions(assessmentId: string) {
+    const { error } = await supabase
+      .from('questions')
+      .delete()
+      .eq('assessment_id', assessmentId)
+    
+    if (error) throw error
+  }
+
+  async addQuestionsBulk(assessmentId: string, questions: BulkQuestion[]) {
+    // Get current max order_index
+    const { data: existingQ } = await supabase
+      .from('questions')
+      .select('order_index')
+      .eq('assessment_id', assessmentId)
+      .order('order_index', { ascending: false })
+      .limit(1)
+    
+    let nextIndex = 0
+    if (existingQ && existingQ.length > 0 && existingQ[0].order_index !== null) {
+      nextIndex = existingQ[0].order_index + 1
+    }
+
+    for (const q of questions) {
+      await this.addQuestion(assessmentId, {
+        content: q.content,
+        question_type: q.question_type,
+        marks_possible: q.marks_possible,
+        order_index: nextIndex++
+      }, q.options)
+    }
   }
 
   async completeSubmission(submissionId: string) {

@@ -56,3 +56,34 @@ npm run start
 
 ## 🔐 Integrity & Security
 The system uses the `AssessmentContext` to attach native event listeners for `copy`, `paste`, `cut`, and `visibilitychange`. All violations are logged locally in IndexedDB and synced to the `audit_logs` table.
+
+## 📊 Assessment Question JSON Schema
+
+Examiners can bulk-upload questions using a JSON file. The expected format is an array of question objects:
+
+```json
+[
+  {
+    "content": "What is the capital of France?",
+    "question_type": "mcq",
+    "marks_possible": 1,
+    "options": ["Paris", "London", "Berlin", "Madrid"]
+  },
+  {
+    "content": "Explain the process of cellular respiration.",
+    "question_type": "short_answer",
+    "marks_possible": 5
+  },
+  {
+    "content": "Upload a sketch of the human heart.",
+    "question_type": "image_upload",
+    "marks_possible": 10
+  }
+]
+```
+
+### Field Definitions:
+- `content` (string, **required**): The question text.
+- `question_type` (string, **required**): Must be one of `mcq`, `short_answer`, or `image_upload`.
+- `marks_possible` (number, **required**): The maximum score for this question.
+- `options` (array of strings, **optional**): Required ONLY for `mcq` type. Each string represents a choice.

@@ -5,6 +5,7 @@ import { Card, Button } from '@/components/ui'
 import { assessmentService } from '@/lib/services/AssessmentService'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, Save, Eye, EyeOff, CheckCircle2, AlertCircle } from 'lucide-react'
+import Image from 'next/image'
 
 import { Tables } from '@/lib/types/database.types'
 
@@ -120,7 +121,8 @@ export default function GradeSubmission({ params }: { params: Promise<{ id: stri
           <div className="flex flex-col gap-8 pb-20">
           {submission?.responses.map((resp, index) => {
           const q = resp.questions
-          const key = Array.isArray(q.marking_keys) ? q.marking_keys[0] : (q.marking_keys as any)
+          const mk = q.marking_keys
+          const key = (Array.isArray(mk) ? mk[0] : mk) as Tables<'marking_keys'> | undefined
           const isMcq = q.question_type === 'mcq'
           const currentGrade = grades[resp.id]
 
@@ -187,10 +189,12 @@ export default function GradeSubmission({ params }: { params: Promise<{ id: stri
                       </div>
                     ) : resp.image_response_url ? (
                       <div className="relative aspect-video w-full overflow-hidden rounded-lg shadow-sm">
-                        <img 
+                        <Image 
                           src={resp.image_response_url} 
                           alt="Handwritten response" 
-                          className="object-contain w-full h-full"
+                          fill
+                          className="object-contain"
+                          unoptimized
                         />
                       </div>
                     ) : (

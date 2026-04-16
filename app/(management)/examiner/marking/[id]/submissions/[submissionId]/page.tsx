@@ -11,6 +11,7 @@ import { Tables } from '@/lib/types/database.types'
 
 type FullSubmission = Tables<'submissions'> & {
   assessments: Tables<'assessments'>
+  candidates?: Tables<'candidates'>
   responses: (Tables<'responses'> & {
     questions: Tables<'questions'> & {
       options: Tables<'options'>[]
@@ -92,9 +93,11 @@ export default function GradeSubmission({ params }: { params: Promise<{ id: stri
             Back to Submissions
           </button>
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-black text-slate-800 tracking-tight">Grading: {submission?.student_id}</h1>
-            <span className="px-3 py-1 bg-slate-200 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest">
-              {submission?.assessments?.assessment_code}
+            <h1 className="text-2xl font-black text-slate-800 tracking-tight">
+              Grading: {submission?.candidates?.first_name} {submission?.candidates?.last_name}
+            </h1>
+            <span className="px-3 py-1 bg-teal-50 text-teal-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+              ID: {submission?.candidates?.student_id}
             </span>
           </div>
         </div>

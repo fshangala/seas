@@ -14,18 +14,24 @@ import {
   Award,
   AlertCircle
 } from 'lucide-react'
+import { Tables } from '@/lib/types/database.types'
 
 export default function ResultDetailPage() {
-  const { studentId, assessmentId } = useParams()
+  const { candidateId, assessmentId } = useParams()
   const router = useRouter()
+  const [candidate, setCandidate] = useState<Tables<'candidates'> | null>(null)
   const [submission, setSubmission] = useState<SubmissionWithAssessment | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function loadData() {
       try {
-        const data = await assessmentService.getSubmissionDetails(studentId as string, assessmentId as string)
-        setSubmission(data)
+        const [cData, sData] = await Promise.all([
+          assessmentService.getCandidateById(candidateId as string),
+          assessmentService.getSubmissionDetails(candidateId as string, assessmentId as string)
+        ])
+        setCandidate(cData)
+        setSubmission(sData)
       } catch (err) {
         console.error(err)
       } finally {
@@ -33,7 +39,7 @@ export default function ResultDetailPage() {
       }
     }
     loadData()
-  }, [studentId, assessmentId])
+  }, [candidateId, assessmentId])
 
   if (loading) return (
     <div className="flex-1 flex items-center justify-center bg-slate-50">
@@ -46,7 +52,7 @@ export default function ResultDetailPage() {
       <AlertCircle size={48} className="text-red-500 mb-4" />
       <h1 className="text-2xl font-bold text-slate-800">Result Not Found</h1>
       <p className="text-slate-500 mb-8">We couldn&apos;t find the record you were looking for.</p>
-      <Button onClick={() => router.push(`/candidate/dashboard?studentId=${studentId}`)}>Back to Dashboard</Button>
+      <Button onClick={() => router.push(`/candidate/dashboard`)}>Back to Entry</Button>
     </div>
   )
 
@@ -64,13 +70,17 @@ export default function ResultDetailPage() {
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-4">
           <div className="flex flex-col gap-1">
             <button 
-              onClick={() => router.push(`/candidate/dashboard?studentId=${studentId}`)}
+              onClick={() => router.push(`/candidate/${candidateId}/dashboard`)}
               className="flex items-center gap-2 text-xs font-bold text-teal-600 uppercase tracking-widest hover:underline mb-2"
             >
               <ChevronLeft size={14} /> Back to Dashboard
             </button>
             <h1 className="text-3xl font-black text-slate-800 tracking-tight">{assessment.title}</h1>
-            <p className="text-slate-500 font-medium">Results for Student ID: <span className="text-teal-600 font-bold">{studentId}</span></p>
+            <p className="text-slate-500 font-medium">
+              Results for: <span className="text-teal-600 font-bold">{candidate?.first_name} {candidate?.last_name}</span> 
+              <span className="text-slate-300 mx-2">|</span>
+              Student ID: <span className="text-slate-700 font-bold">{candidate?.student_id}</span>
+            </p>
           </div>
           <div className="flex items-center gap-2 px-6 py-3 bg-white rounded-2xl border border-slate-200 shadow-sm">
             <CheckCircle className="text-teal-500" size={20} />

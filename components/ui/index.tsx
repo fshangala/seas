@@ -76,10 +76,13 @@ export function Button({
   className, 
   variant = 'primary',
   icon: Icon,
+  loading = false,
+  disabled,
   ...props 
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { 
   variant?: 'primary' | 'secondary' | 'accent',
-  icon?: LucideIcon
+  icon?: LucideIcon,
+  loading?: boolean
 }) {
   const variantClass = {
     primary: 'teal-gradient',
@@ -94,9 +97,14 @@ export function Button({
         variantClass,
         className
       )}
+      disabled={disabled || loading}
       {...props}
     >
-      {Icon && <Icon size={20} />}
+      {loading ? (
+        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+      ) : Icon && (
+        <Icon size={20} />
+      )}
       {children}
     </button>
   )

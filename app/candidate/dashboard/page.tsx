@@ -8,14 +8,33 @@ import {
   Search
 } from 'lucide-react'
 
+import { assessmentService } from '@/lib/services/AssessmentService'
+
 export default function CandidateDashboardEntry() {
   const router = useRouter()
   const [tempId, setTempId] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleIdentify = (e: React.FormEvent) => {
+  const handleIdentify = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!tempId.trim()) return
-    router.push(`/candidate/${tempId.trim()}/dashboard`)
+    
+    setLoading(true)
+    setError('')
+    try {
+      const candidate = await assessmentService.getCandidateByStudentId(tempId.trim())
+      if (candidate) {
+        router.push(`/candidate/${candidate.id}/dashboard`)
+      } else {
+        router.push(`/candidate/profile?studentId=${tempId.trim()}`)
+      }
+    } catch (err) {
+      console.error(err)
+      setError('An error occurred. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -37,8 +56,12 @@ export default function CandidateDashboardEntry() {
             onChange={(e) => setTempId(e.target.value)}
             className="text-center text-lg font-bold"
             icon={Search}
+            disabled={loading}
           />
-          <Button type="submit" className="py-4">Access Records</Button>
+          {error && <p className="text-red-500 text-xs font-bold text-center">{error}</p>}
+          <Button type="submit" className="py-4" loading={loading}>
+            Access Records
+          </Button>
         </form>
         <button 
           onClick={() => router.push('/')}

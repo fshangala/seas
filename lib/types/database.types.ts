@@ -56,6 +56,7 @@ export type Database = {
       audit_logs: {
         Row: {
           action: string
+          candidate_id: string | null
           created_at: string | null
           entity_id: string | null
           entity_type: string
@@ -66,6 +67,7 @@ export type Database = {
         }
         Insert: {
           action: string
+          candidate_id?: string | null
           created_at?: string | null
           entity_id?: string | null
           entity_type: string
@@ -76,6 +78,7 @@ export type Database = {
         }
         Update: {
           action?: string
+          candidate_id?: string | null
           created_at?: string | null
           entity_id?: string | null
           entity_type?: string
@@ -83,6 +86,38 @@ export type Database = {
           new_data?: Json | null
           old_data?: Json | null
           user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidates: {
+        Row: {
+          created_at: string | null
+          first_name: string
+          id: string
+          last_name: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          student_id?: string
         }
         Relationships: []
       }
@@ -269,6 +304,7 @@ export type Database = {
         Row: {
           assessment_id: string | null
           auto_score: number | null
+          candidate_id: string | null
           client_end_time: string | null
           client_start_time: string | null
           grading_status: string | null
@@ -276,12 +312,12 @@ export type Database = {
           manual_score: number | null
           penalty_applied: number | null
           server_received_at: string | null
-          student_id: string
           total_score: number | null
         }
         Insert: {
           assessment_id?: string | null
           auto_score?: number | null
+          candidate_id?: string | null
           client_end_time?: string | null
           client_start_time?: string | null
           grading_status?: string | null
@@ -289,12 +325,12 @@ export type Database = {
           manual_score?: number | null
           penalty_applied?: number | null
           server_received_at?: string | null
-          student_id: string
           total_score?: number | null
         }
         Update: {
           assessment_id?: string | null
           auto_score?: number | null
+          candidate_id?: string | null
           client_end_time?: string | null
           client_start_time?: string | null
           grading_status?: string | null
@@ -302,7 +338,6 @@ export type Database = {
           manual_score?: number | null
           penalty_applied?: number | null
           server_received_at?: string | null
-          student_id?: string
           total_score?: number | null
         }
         Relationships: [
@@ -311,6 +346,13 @@ export type Database = {
             columns: ["assessment_id"]
             isOneToOne: false
             referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submissions_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
             referencedColumns: ["id"]
           },
         ]

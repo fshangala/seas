@@ -12,40 +12,46 @@ import {
   Plus, 
   LogOut
 } from 'lucide-react'
+import { Tables } from '@/lib/types/database.types'
 
-export default function StudentDashboardPage() {
+export default function CandidateDashboardPage() {
   const router = useRouter()
-  const { studentId } = useParams()
+  const { candidateId } = useParams()
   
+  const [candidate, setCandidate] = useState<Tables<'candidates'> | null>(null)
   const [submissions, setSubmissions] = useState<SubmissionWithAssessment[]>([])
   const [loading, setLoading] = useState(true)
   const [newCode, setNewCode] = useState('')
   const [error, setError] = useState('')
 
-  const loadSubmissions = React.useCallback(async () => {
-    if (!studentId) return
+  const loadData = React.useCallback(async () => {
+    if (!candidateId) return
     setLoading(true)
     setError('')
     try {
-      const data = await assessmentService.getSubmissionsByStudent(studentId as string)
-      setSubmissions(data)
+      const [cData, sData] = await Promise.all([
+        assessmentService.getCandidateById(candidateId as string),
+        assessmentService.getSubmissionsByCandidate(candidateId as string)
+      ])
+      setCandidate(cData)
+      setSubmissions(sData)
     } catch {
-      setError('Failed to load your assessments.')
+      setError('Failed to load your records.')
     } finally {
       setLoading(false)
     }
-  }, [studentId])
+  }, [candidateId])
 
   useEffect(() => {
-    loadSubmissions()
-  }, [loadSubmissions])
+    loadData()
+  }, [loadData])
 
   const handleStartNew = async () => {
     if (!newCode.trim()) return
     setError('')
     try {
       await assessmentService.getAssessmentByCode(newCode.trim().toUpperCase())
-      router.push(`/assessment/${newCode.trim().toUpperCase()}/${studentId}`)
+      router.push(`/assessment/${newCode.trim().toUpperCase()}/${candidateId}`)
     } catch {
       setError('Invalid Assessment Code')
     }
@@ -64,8 +70,10 @@ export default function StudentDashboardPage() {
               <LayoutDashboard size={20} />
             </div>
             <div className="flex flex-col">
-              <h1 className="text-lg font-black text-slate-800 tracking-tight leading-none">Dashboard</h1>
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">ID: {studentId}</span>
+              <h1 className="text-lg font-black text-slate-800 tracking-tight leading-none">
+                {candidate ? `${candidate.first_name} ${candidate.last_name}` : 'Dashboard'}
+              </h1>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">ID: {candidate?.student_id || '...'}</span>
             </div>
           </div>
           <button 
@@ -111,7 +119,7 @@ export default function StudentDashboardPage() {
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between px-2">
             <h2 className="text-xl font-bold text-slate-800 tracking-tight">Assessment History</h2>
-            <button onClick={loadSubmissions} className="text-xs font-bold text-teal-600 hover:underline uppercase tracking-widest">Refresh</button>
+            <button onClick={loadData} className="text-xs font-bold text-teal-600 hover:underline uppercase tracking-widest">Refresh</button>
           </div>
 
           {loading ? (
@@ -174,9 +182,9 @@ export default function StudentDashboardPage() {
                         className="px-6 py-2 rounded-xl text-sm"
                         onClick={() => {
                           if (isCompleted) {
-                            router.push(`/candidate/results/${studentId}/${sub.assessment_id}`)
+                            router.push(`/candidate/results/${candidateId}/${sub.assessment_id}`)
                           } else {
-                            router.push(`/assessment/${sub.assessments.assessment_code}/${studentId}`)
+                            router.push(`/assessment/${sub.assessments.assessment_code}/${candidateId}`)
                           }
                         }}
                       >

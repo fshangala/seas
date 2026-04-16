@@ -4,7 +4,7 @@ import React, { useEffect, useState, use } from 'react'
 import { Card, Button } from '@/components/ui'
 import { assessmentService, SubmissionWithAssessment } from '@/lib/services/AssessmentService'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, User, Clock, CheckCircle2, AlertCircle, Eye } from 'lucide-react'
+import { ChevronLeft, User, Clock, CheckCircle2, AlertCircle, Eye, Download } from 'lucide-react'
 import { format } from 'date-fns'
 
 export default function AssessmentSubmissions({ params }: { params: Promise<{ id: string }> }) {
@@ -27,6 +27,60 @@ export default function AssessmentSubmissions({ params }: { params: Promise<{ id
     load()
   }, [id])
 
+  const handleDownloadCSV = () => {
+    if (submissions.length === 0) return
+
+    const headers = [
+      'First Name',
+      'Last Name',
+      'Student ID',
+      'Assessment Code',
+      'Assessment Name',
+      'Time Taken (Min)',
+      'Grades'
+    ]
+
+    const rows = submissions.map(s => {
+      const startTime = s.client_start_time ? new Date(s.client_start_time) : null
+      const endTime = s.client_end_time 
+        ? new Date(s.client_end_time) 
+        : s.server_received_at 
+          ? new Date(s.server_received_at) 
+          : null
+      
+      let timeTaken = 'N/A'
+      if (startTime && endTime) {
+        const diffMs = endTime.getTime() - startTime.getTime()
+        timeTaken = Math.round(diffMs / 60000).toString()
+      }
+
+      return [
+        s.candidates?.first_name || '',
+        s.candidates?.last_name || '',
+        s.candidates?.student_id || '',
+        s.assessments?.assessment_code || '',
+        s.assessments?.title || '',
+        timeTaken,
+        s.grading_status === 'completed' ? s.total_score : 'Pending'
+      ]
+    })
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `results-${submissions[0].assessments.assessment_code}-${format(new Date(), 'yyyy-MM-dd')}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   if (loading) return <div className="animate-pulse space-y-4">
     <div className="h-12 w-64 bg-slate-200 rounded-2xl" />
     {[1, 2, 3].map(i => <div key={i} className="h-20 bg-slate-200 rounded-2xl" />)}
@@ -45,6 +99,17 @@ export default function AssessmentSubmissions({ params }: { params: Promise<{ id
           </button>
           <h1 className="text-4xl font-black text-slate-800 tracking-tight">Submissions</h1>
           <p className="text-slate-500 font-medium">Review and grade candidate attempts for this assessment.</p>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="secondary" 
+            icon={Download}
+            onClick={handleDownloadCSV}
+            disabled={submissions.length === 0}
+          >
+            Download Results
+          </Button>
         </div>
       </header>
 

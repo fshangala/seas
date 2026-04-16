@@ -42,6 +42,15 @@ export default function AssessmentEntryPage() {
       const candidate = await assessmentService.getCandidateByStudentId(studentId.trim())
       
       if (candidate) {
+        // Check if they already submitted this assessment
+        if (state.assessment) {
+          const existingSubmission = await assessmentService.getSubmission(state.assessment.id, candidate.id)
+          if (existingSubmission && (existingSubmission.server_received_at || existingSubmission.grading_status === 'completed')) {
+            alert('You have already submitted this assessment.')
+            router.push(`/candidate/${candidate.id}/dashboard`)
+            return
+          }
+        }
         // Candidate exists, proceed to assessment using their UUID
         router.push(`/assessment/${code}/${candidate.id}`)
       } else {

@@ -97,6 +97,39 @@ export type Database = {
           },
         ]
       }
+      candidate_assessments: {
+        Row: {
+          assessment_id: string
+          candidate_id: string
+          created_at: string | null
+        }
+        Insert: {
+          assessment_id: string
+          candidate_id: string
+          created_at?: string | null
+        }
+        Update: {
+          assessment_id?: string
+          candidate_id?: string
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_assessments_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_assessments_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidates: {
         Row: {
           created_at: string | null

@@ -13,6 +13,7 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - **Model**: Use `lib/services/` for Supabase API calls and `lib/idb.ts` for IndexedDB operations.
 - **ViewModel**: Use `lib/viewmodels/AssessmentContext.tsx` to manage UI state and handle proctoring logic.
 - **View**: Components in `components/` should remain thin and rely on context for state. Prioritize reusable components for UI patterns (e.g., stats cards, form inputs, layouts) to maintain consistency and reduce duplication.
+- **Candidates**: All candidate associations MUST use UUID-based `candidate_id` from the `candidates` table. Legacy `student_id` is for identification only.
 
 ## 🛠 Tech Stack Conventions
 - **Tailwind 4**: Use the new `@theme` and `@layer` syntax in `app/globals.css`.
@@ -50,7 +51,10 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - [x] **JSON Bulk Operations**: Upload questions via JSON and clear all questions functionality.
 - [x] **Marking Key Management**: Define correct answers, auto-marking rules, and grading notes for published assessments.
 - [x] **Manual Grading Interface**: UI for examiners to review and grade essays and image uploads with toggleable marking keys.
-- [x] **Candidate Dashboard**: History tracking, in-progress resume, and URL-based Student ID path structure.
+- [x] **Candidate Profiles**: Persistent registration for candidates via the `candidates` table.
+- [x] **UUID-based Routing**: Migrated all candidate-facing routes from Student ID to UUID.
+- [x] **Assessment Association**: Persistent tracking of candidate visits via `candidate_assessments` table.
+- [x] **Start Assessment Workflow**: Preview screen with details and explicit session start.
 - [x] **Results Detail Page**: Performance summary and grading status for completed assessments.
 - [x] **Mobile Responsiveness**: Adaptive UI for candidates taking assessments on mobile devices.
 

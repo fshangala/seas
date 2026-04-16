@@ -2,17 +2,15 @@
 
 import React, { useEffect, useState, use } from 'react'
 import { Card, Button } from '@/components/ui'
-import { assessmentService } from '@/lib/services/AssessmentService'
+import { assessmentService, SubmissionWithAssessment } from '@/lib/services/AssessmentService'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, User, Clock, CheckCircle2, AlertCircle, Eye } from 'lucide-react'
 import { format } from 'date-fns'
 
-import { Tables } from '@/lib/types/database.types'
-
 export default function AssessmentSubmissions({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const { id } = use(params)
-  const [submissions, setSubmissions] = useState<Tables<'submissions'>[]>([])
+  const [submissions, setSubmissions] = useState<SubmissionWithAssessment[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -79,11 +77,15 @@ export default function AssessmentSubmissions({ params }: { params: Promise<{ id
                     <td className="p-6">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
-                          {s.student_id.substring(0, 2).toUpperCase()}
+                          {s.candidates?.first_name[0]}{s.candidates?.last_name[0]}
                         </div>
-                        <span className="font-bold text-slate-700">{s.student_id}</span>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-slate-700">{s.candidates?.first_name} {s.candidates?.last_name}</span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{s.candidates?.student_id}</span>
+                        </div>
                       </div>
                     </td>
+
                     <td className="p-6">
                       <div className="flex items-center gap-2 text-slate-500">
                         <Clock size={14} />

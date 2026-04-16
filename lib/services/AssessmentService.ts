@@ -474,7 +474,7 @@ export class AssessmentService {
   async getSubmissions(assessmentId: string) {
     const { data, error } = await supabase
       .from('submissions')
-      .select('*, candidates(*)')
+      .select('*, candidates(*), assessments(title, assessment_code)')
       .eq('assessment_id', assessmentId)
       .order('server_received_at', { ascending: false })
 

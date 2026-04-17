@@ -38,6 +38,13 @@ export default function AssessmentExecutionPage() {
         const existingSubmission = await assessmentService.getSubmission(assessment.id, cData.id)
         
         if (existingSubmission) {
+          // Check if already submitted (server_received_at is set or status is completed)
+          if (existingSubmission.server_received_at || existingSubmission.grading_status === 'completed') {
+            alert('You have already submitted this assessment.')
+            router.push(`/candidate/${candidateId}/dashboard`)
+            return
+          }
+
           dispatch({ type: 'SET_SUBMISSION_ID', payload: existingSubmission.id })
           
           // Load local responses for THIS submission

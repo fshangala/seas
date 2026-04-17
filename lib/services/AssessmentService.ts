@@ -570,6 +570,11 @@ export class AssessmentService {
 
     if (subError) throw subError
   }
+
+  async autoMarkMCQ(assessmentId: string) {
+    const { error } = await supabase.rpc('auto_mark_mcq', { assessment_id_param: assessmentId })
+    if (error) throw error
+  }
 }
 
 export const assessmentService = new AssessmentService()

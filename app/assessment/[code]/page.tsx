@@ -5,11 +5,13 @@ import { useParams, useRouter } from 'next/navigation'
 import { useAssessment } from '@/lib/viewmodels/AssessmentContext'
 import { assessmentService } from '@/lib/services/AssessmentService'
 import { Button, Card, Input } from '@/components/ui'
+import { useAlert } from '@/lib/viewmodels/AlertContext'
 import { ShieldCheck, Clock, User, ArrowRight } from 'lucide-react'
 
 export default function AssessmentEntryPage() {
   const { code } = useParams()
   const router = useRouter()
+  const { showAlert } = useAlert()
   const { state, dispatch } = useAssessment()
   const [loading, setLoading] = useState(true)
   const [verifying, setVerifying] = useState(false)
@@ -24,14 +26,14 @@ export default function AssessmentEntryPage() {
         dispatch({ type: 'SET_ASSESSMENT', payload: assessment })
       } catch (err) {
         console.error(err)
-        alert('Assessment not found or unavailable.')
+        showAlert('Assessment not found or unavailable.')
         router.push('/')
       } finally {
         setLoading(false)
       }
     }
     loadData()
-  }, [code, dispatch, router])
+  }, [code, dispatch, router, showAlert])
 
   const handleEnterId = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,7 +48,7 @@ export default function AssessmentEntryPage() {
         if (state.assessment) {
           const existingSubmission = await assessmentService.getSubmission(state.assessment.id, candidate.id)
           if (existingSubmission && (existingSubmission.server_received_at || existingSubmission.grading_status === 'completed')) {
-            alert('You have already submitted this assessment.')
+            showAlert('You have already submitted this assessment.')
             router.push(`/candidate/${candidate.id}/dashboard`)
             return
           }
@@ -59,7 +61,7 @@ export default function AssessmentEntryPage() {
       }
     } catch (err) {
       console.error(err)
-      alert('An error occurred during verification. Please try again.')
+      showAlert('An error occurred during verification. Please try again.')
     } finally {
       setVerifying(false)
     }

@@ -10,6 +10,7 @@ import {
   Clock, FileText, Upload
 } from 'lucide-react'
 import { assessmentService } from '@/lib/services/AssessmentService'
+import { useAlert } from '@/lib/viewmodels/AlertContext'
 import { supabase } from '@/lib/supabase'
 import { Tables } from '@/lib/types/database.types'
 
@@ -20,6 +21,7 @@ type FullQuestion = Tables<'questions'> & {
 export default function EditAssessmentPage() {
   const { id } = useParams()
   const router = useRouter()
+  const { showAlert } = useAlert()
   const [assessment, setAssessment] = useState<Tables<'assessments'> | null>(null)
   const [questions, setQuestions] = useState<FullQuestion[]>([])
   const [loading, setLoading] = useState(true)
@@ -72,13 +74,17 @@ export default function EditAssessmentPage() {
         await loadQuestions()
       } catch (err) {
         console.error(err)
-        alert('Failed to load assessment data.')
+        showAlert({
+          title: 'Error',
+          message: 'Failed to load assessment data.',
+          variant: 'danger'
+        })
       } finally {
         setLoading(false)
       }
     }
     loadData()
-  }, [id, loadQuestions])
+  }, [id, loadQuestions, showAlert])
 
   const handleUpdateSettings = async () => {
     if (!assessment) return
@@ -87,27 +93,46 @@ export default function EditAssessmentPage() {
       const updated = await assessmentService.updateAssessment(assessment.id, settings)
       setAssessment(updated)
       setShowSettings(false)
-      alert('Settings updated successfully!')
+      showAlert({
+        title: 'Settings Saved',
+        message: 'Assessment settings updated successfully!',
+        variant: 'success'
+      })
     } catch (err) {
       console.error(err)
-      alert('Failed to update settings')
+      showAlert({
+        title: 'Error',
+        message: 'Failed to update settings',
+        variant: 'danger'
+      })
     } finally {
       setSavingSettings(false)
     }
   }
 
   const handleDuplicate = async () => {
-    if (!confirm('This will create a new draft copy of this assessment. Continue?')) return
-    setDuplicating(true)
-    try {
-      const duplicate = await assessmentService.duplicateAssessment(id as string)
-      router.push(`/examiner/assessments/${duplicate.id}/edit`)
-    } catch (err) {
-      console.error(err)
-      alert('Failed to duplicate assessment')
-    } finally {
-      setDuplicating(false)
-    }
+    showAlert({
+      title: 'Duplicate Assessment',
+      message: 'This will create a new draft copy of this assessment. Continue?',
+      confirmLabel: 'Duplicate',
+      cancelLabel: 'Cancel',
+      onConfirm: async () => {
+        setDuplicating(true)
+        try {
+          const duplicate = await assessmentService.duplicateAssessment(id as string)
+          router.push(`/examiner/assessments/${duplicate.id}/edit`)
+        } catch (err) {
+          console.error(err)
+          showAlert({
+            title: 'Error',
+            message: 'Failed to duplicate assessment',
+            variant: 'danger'
+          })
+        } finally {
+          setDuplicating(false)
+        }
+      }
+    })
   }
 
   const handleAddQuestion = (type: string) => {
@@ -145,34 +170,73 @@ export default function EditAssessmentPage() {
       }
       await loadQuestions()
       setEditingQuestion(null)
+      showAlert({
+        title: 'Question Saved',
+        message: 'The question has been updated in the assessment structure.',
+        variant: 'success'
+      })
     } catch (err) {
       console.error(err)
-      alert('Failed to save question')
+      showAlert({
+        title: 'Error',
+        message: 'Failed to save question',
+        variant: 'danger'
+      })
     }
   }
 
   const handleDeleteQuestion = async (qId: string) => {
-    if (!confirm('Are you sure?')) return
-    try {
-      await assessmentService.deleteQuestion(qId)
-      setQuestions(questions.filter(q => q.id !== qId))
-    } catch (err) {
-      console.error(err)
-    }
+    showAlert({
+      title: 'Delete Question',
+      message: 'Are you sure you want to remove this question?',
+      confirmLabel: 'Remove',
+      cancelLabel: 'Cancel',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await assessmentService.deleteQuestion(qId)
+          setQuestions(prev => prev.filter(q => q.id !== qId))
+        } catch (err) {
+          console.error(err)
+          showAlert({
+            title: 'Error',
+            message: 'Failed to delete question',
+            variant: 'danger'
+          })
+        }
+      }
+    })
   }
 
   const handleClearAll = async () => {
-    if (!confirm('Are you sure you want to delete ALL questions? This action cannot be undone.')) return
-    setClearing(true)
-    try {
-      await assessmentService.clearQuestions(id as string)
-      setQuestions([])
-    } catch (err) {
-      console.error(err)
-      alert('Failed to clear questions')
-    } finally {
-      setClearing(false)
-    }
+    showAlert({
+      title: 'Clear All Questions',
+      message: 'Are you sure you want to delete ALL questions? This action cannot be undone.',
+      confirmLabel: 'Clear All',
+      cancelLabel: 'Cancel',
+      variant: 'danger',
+      onConfirm: async () => {
+        setClearing(true)
+        try {
+          await assessmentService.clearQuestions(id as string)
+          setQuestions([])
+          showAlert({
+            title: 'Questions Cleared',
+            message: 'All questions have been removed from this assessment.',
+            variant: 'success'
+          })
+        } catch (err) {
+          console.error(err)
+          showAlert({
+            title: 'Error',
+            message: 'Failed to clear questions',
+            variant: 'danger'
+          })
+        } finally {
+          setClearing(false)
+        }
+      }
+    })
   }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,10 +255,18 @@ export default function EditAssessmentPage() {
         setUploading(true)
         await assessmentService.addQuestionsBulk(id as string, jsonData)
         await loadQuestions()
-        alert('Questions uploaded successfully!')
+        showAlert({
+          title: 'Import Successful',
+          message: 'Questions have been uploaded and added to the assessment.',
+          variant: 'success'
+        })
       } catch (err) {
         console.error(err)
-        alert(`Failed to upload questions: ${err instanceof Error ? err.message : 'Invalid JSON'}`)
+        showAlert({
+          title: 'Import Error',
+          message: `Failed to upload questions: ${err instanceof Error ? err.message : 'Invalid JSON'}`,
+          variant: 'danger'
+        })
       } finally {
         setUploading(false)
         event.target.value = '' // Reset input
@@ -204,20 +276,41 @@ export default function EditAssessmentPage() {
   }
 
   const handlePublish = async () => {
-    if (questions.length === 0) return alert('Add at least one question before publishing.')
-    if (!confirm('Once published, the assessment will be accessible via a code. Continue?')) return
-
-    setPublishing(true)
-    try {
-      const updated = await assessmentService.publishAssessment(id as string)
-      setAssessment(updated)
-      alert(`Assessment published! Code: ${updated.assessment_code}`)
-    } catch (err) {
-      console.error(err)
-      alert('Failed to publish assessment')
-    } finally {
-      setPublishing(false)
+    if (questions.length === 0) {
+      return showAlert({
+        title: 'Cannot Publish',
+        message: 'Add at least one question before publishing.',
+        variant: 'danger'
+      })
     }
+
+    showAlert({
+      title: 'Publish Assessment',
+      message: 'Once published, the assessment will be accessible via a code and cannot be modified. Continue?',
+      confirmLabel: 'Publish Now',
+      cancelLabel: 'Later',
+      onConfirm: async () => {
+        setPublishing(true)
+        try {
+          const updated = await assessmentService.publishAssessment(id as string)
+          setAssessment(updated)
+          showAlert({
+            title: 'Assessment Published',
+            message: `Assessment is now live! Access Code: ${updated.assessment_code}`,
+            variant: 'success'
+          })
+        } catch (err) {
+          console.error(err)
+          showAlert({
+            title: 'Publish Error',
+            message: 'Failed to publish assessment',
+            variant: 'danger'
+          })
+        } finally {
+          setPublishing(false)
+        }
+      }
+    })
   }
 
   const handleShareLink = () => {

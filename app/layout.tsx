@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AssessmentProvider } from "@/lib/viewmodels/AssessmentContext";
+import { AlertProvider } from "@/lib/viewmodels/AlertContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,9 +34,11 @@ export default function RootLayout({
         <meta name="theme-color" content="#0d9488" />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <AssessmentProvider>
-          {children}
-        </AssessmentProvider>
+        <AlertProvider>
+          <AssessmentProvider>
+            {children}
+          </AssessmentProvider>
+        </AlertProvider>
       </body>
     </html>
   );

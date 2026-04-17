@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAssessment } from '@/lib/viewmodels/AssessmentContext'
+import { useAlert } from '@/lib/viewmodels/AlertContext'
 import { assessmentService } from '@/lib/services/AssessmentService'
 import { QuestionRenderer } from '@/components/QuestionRenderer'
 import { Button, FAB } from '@/components/ui'
@@ -13,6 +14,7 @@ import { Tables } from '@/lib/types/database.types'
 export default function AssessmentExecutionPage() {
   const { code, candidateId } = useParams()
   const router = useRouter()
+  const { showAlert, showLoading, hideLoading } = useAlert()
   const { state, dispatch } = useAssessment()
   const [loading, setLoading] = useState(true)
   const [isStarted, setIsStarted] = useState(false)
@@ -40,8 +42,11 @@ export default function AssessmentExecutionPage() {
         if (existingSubmission) {
           // Check if already submitted (server_received_at is set or status is completed)
           if (existingSubmission.server_received_at || existingSubmission.grading_status === 'completed') {
-            alert('You have already submitted this assessment.')
-            router.push(`/candidate/${candidateId}/dashboard`)
+            showAlert({
+              title: 'Assessment Already Submitted',
+              message: 'You have already submitted this assessment.',
+              onConfirm: () => router.push(`/candidate/${candidateId}/dashboard`)
+            })
             return
           }
 
@@ -62,14 +67,18 @@ export default function AssessmentExecutionPage() {
         }
       } catch (err) {
         console.error(err)
-        alert('Failed to initialize assessment. Please check your connection or code.')
+        showAlert({
+          title: 'Initialization Error',
+          message: 'Failed to initialize assessment. Please check your connection or code.',
+          variant: 'danger'
+        })
         router.push('/')
       } finally {
         setLoading(false)
       }
     }
     loadData()
-  }, [code, candidateId, dispatch, router])
+  }, [code, candidateId, dispatch, router, showAlert])
 
   const handleStart = async () => {
     if (!state.assessment || !candidate) return
@@ -83,7 +92,11 @@ export default function AssessmentExecutionPage() {
       setIsStarted(true)
     } catch (err) {
       console.error(err)
-      alert('Failed to start assessment. Please try again.')
+      showAlert({
+        title: 'Start Error',
+        message: 'Failed to start assessment. Please try again.',
+        variant: 'danger'
+      })
     } finally {
       setLoading(false)
     }
@@ -107,17 +120,35 @@ export default function AssessmentExecutionPage() {
   }
 
   const handleSubmit = async () => {
-    if (confirm('Are you sure you want to submit your assessment?')) {
-      try {
-        await assessmentService.syncResponses(state.submissionId!)
-        await assessmentService.syncLogs(candidateId as string)
-        await assessmentService.completeSubmission(state.submissionId!)
-        alert('Assessment submitted successfully!')
-        router.push(`/candidate/${candidateId}/dashboard`)
-      } catch {
-        alert('Failed to submit. Your progress is saved offline. Please reconnect to sync.')
+    showAlert({
+      title: 'Submit Assessment',
+      message: 'Are you sure you want to submit your assessment? You cannot make changes after submission.',
+      confirmLabel: 'Yes, Submit',
+      cancelLabel: 'Review Answers',
+      onConfirm: async () => {
+        showLoading('Syncing and Submitting...')
+        try {
+          await assessmentService.syncResponses(state.submissionId!)
+          await assessmentService.syncLogs(candidateId as string)
+          await assessmentService.completeSubmission(state.submissionId!)
+          hideLoading()
+          showAlert({
+            title: 'Submission Successful',
+            message: 'Your assessment has been received and is being graded.',
+            variant: 'success',
+            onConfirm: () => router.push(`/candidate/${candidateId}/dashboard`)
+          })
+        } catch (err) {
+          console.error(err)
+          hideLoading()
+          showAlert({
+            title: 'Sync Error',
+            message: 'Failed to submit. Your progress is saved offline. Please reconnect to sync.',
+            variant: 'danger'
+          })
+        }
       }
-    }
+    })
   }
 
   if (loading) return <div className="flex-1 flex items-center justify-center font-bold text-teal-600 animate-pulse bg-slate-50">Initializing SEAS Environment...</div>
@@ -270,7 +301,11 @@ export default function AssessmentExecutionPage() {
       </main>
 
       {/* Proctoring Status FAB */}
-      <FAB icon={ShieldCheck} onClick={() => alert('SEAS Integrity System is active. All activities are being recorded.')} />
+      <FAB icon={ShieldCheck} onClick={() => showAlert({
+        title: 'Integrity System Active',
+        message: 'The SEAS proctoring system is monitoring this session. All tab switches and navigation events are being recorded for review.',
+        variant: 'success'
+      })} />
     </div>
   )
 }

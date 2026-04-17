@@ -14,7 +14,7 @@ import { Tables } from '@/lib/types/database.types'
 export default function AssessmentExecutionPage() {
   const { code, candidateId } = useParams()
   const router = useRouter()
-  const { showAlert } = useAlert()
+  const { showAlert, showLoading, hideLoading } = useAlert()
   const { state, dispatch } = useAssessment()
   const [loading, setLoading] = useState(true)
   const [isStarted, setIsStarted] = useState(false)
@@ -126,17 +126,21 @@ export default function AssessmentExecutionPage() {
       confirmLabel: 'Yes, Submit',
       cancelLabel: 'Review Answers',
       onConfirm: async () => {
+        showLoading('Syncing and Submitting...')
         try {
           await assessmentService.syncResponses(state.submissionId!)
           await assessmentService.syncLogs(candidateId as string)
           await assessmentService.completeSubmission(state.submissionId!)
+          hideLoading()
           showAlert({
             title: 'Submission Successful',
             message: 'Your assessment has been received and is being graded.',
             variant: 'success',
             onConfirm: () => router.push(`/candidate/${candidateId}/dashboard`)
           })
-        } catch {
+        } catch (err) {
+          console.error(err)
+          hideLoading()
           showAlert({
             title: 'Sync Error',
             message: 'Failed to submit. Your progress is saved offline. Please reconnect to sync.',

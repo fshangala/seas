@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useCallback } from 'react'
-import { Button, Card } from '@/components/ui'
+import { Button, Card, LoadingOverlay } from '@/components/ui'
 import { AlertCircle, CheckCircle2, Info } from 'lucide-react'
 
 type AlertOptions = {
@@ -17,12 +17,15 @@ type AlertOptions = {
 type AlertContextType = {
   showAlert: (options: AlertOptions | string) => void
   hideAlert: () => void
+  showLoading: (message?: string) => void
+  hideLoading: () => void
 }
 
 const AlertContext = createContext<AlertContextType | undefined>(undefined)
 
 export function AlertProvider({ children }: { children: React.ReactNode }) {
   const [alert, setAlert] = useState<AlertOptions | null>(null)
+  const [loading, setLoading] = useState<{ show: boolean, message?: string }>({ show: false })
 
   const showAlert = useCallback((options: AlertOptions | string) => {
     if (typeof options === 'string') {
@@ -36,8 +39,16 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
     setAlert(null)
   }, [])
 
+  const showLoading = useCallback((message?: string) => {
+    setLoading({ show: true, message })
+  }, [])
+
+  const hideLoading = useCallback(() => {
+    setLoading({ show: false })
+  }, [])
+
   return (
-    <AlertContext.Provider value={{ showAlert, hideAlert }}>
+    <AlertContext.Provider value={{ showAlert, hideAlert, showLoading, hideLoading }}>
       {children}
       {alert && (
         <CustomAlertOverlay 
@@ -45,6 +56,7 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
           onClose={hideAlert} 
         />
       )}
+      <LoadingOverlay show={loading.show} message={loading.message} />
     </AlertContext.Provider>
   )
 }

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { assessmentService } from '@/lib/services/AssessmentService'
 import { Tables } from '@/lib/types/database.types'
+import { useAlert } from '@/lib/viewmodels/AlertContext'
 
 type AssessmentWithCount = Tables<'assessments'> & {
   questions: { count: number }[]
@@ -16,6 +17,7 @@ type AssessmentWithCount = Tables<'assessments'> & {
 
 export default function AssessmentsListPage() {
   const router = useRouter()
+  const { showAlert } = useAlert()
   const [assessments, setAssessments] = useState<AssessmentWithCount[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all')
@@ -37,15 +39,31 @@ export default function AssessmentsListPage() {
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
-    if (!confirm('Are you sure you want to delete this draft? This action cannot be undone.')) return
-    
-    try {
-      await assessmentService.deleteAssessment(id)
-      setAssessments(assessments.filter(a => a.id !== id))
-    } catch (err) {
-      console.error(err)
-      alert('Failed to delete assessment')
-    }
+    showAlert({
+      title: 'Delete Assessment',
+      message: 'Are you sure you want to delete this draft? This action cannot be undone.',
+      confirmLabel: 'Delete Draft',
+      cancelLabel: 'Keep Draft',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await assessmentService.deleteAssessment(id)
+          setAssessments(prev => prev.filter(a => a.id !== id))
+          showAlert({
+            title: 'Deleted',
+            message: 'Assessment draft has been deleted.',
+            variant: 'success'
+          })
+        } catch (err) {
+          console.error(err)
+          showAlert({
+            title: 'Error',
+            message: 'Failed to delete assessment',
+            variant: 'danger'
+          })
+        }
+      }
+    })
   }
 
   const filteredAssessments = useMemo(() => {

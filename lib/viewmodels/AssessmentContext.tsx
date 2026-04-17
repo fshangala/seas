@@ -4,6 +4,7 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react'
 import { idb, IDBResponse, IDBLog } from '../idb'
 import { assessmentService } from '../services/AssessmentService'
 import { Tables } from '../types/database.types'
+import { useAlert } from './AlertContext'
 
 export type FullAssessment = Tables<'assessments'> & {
   questions: (Tables<'questions'> & {
@@ -56,6 +57,7 @@ function reducer(state: State, action: Action): State {
 }
 
 export function AssessmentProvider({ children }: { children: React.ReactNode }) {
+  const { showAlert } = useAlert()
   const [state, dispatch] = useReducer(reducer, {
     assessment: null,
     submissionId: null,
@@ -110,7 +112,11 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
       }
       idb.addLog(log)
       dispatch({ type: 'ADD_LOG', payload: log })
-      alert(`Copy/Paste/Cut is blocked for integrity. This event has been logged.`)
+      showAlert({ 
+        title: 'Integrity Violation',
+        message: 'Copy/Paste/Cut is blocked for integrity. This event has been logged.',
+        variant: 'danger'
+      })
     }
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
@@ -124,7 +130,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
       document.removeEventListener('paste', handleCopyPaste)
       document.removeEventListener('cut', handleCopyPaste)
     }
-  }, [])
+  }, [showAlert])
 
   return (
     <AssessmentContext.Provider value={{ state, dispatch }}>

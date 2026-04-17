@@ -4,20 +4,35 @@ import React, { useEffect, useState, use } from 'react'
 import { Card, Button } from '@/components/ui'
 import { assessmentService, SubmissionWithAssessment } from '@/lib/services/AssessmentService'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, User, Clock, CheckCircle2, AlertCircle, Eye, Download } from 'lucide-react'
+import { ChevronLeft, User, Clock, CheckCircle2, AlertCircle, Eye, Download, Zap } from 'lucide-react'
 import { format } from 'date-fns'
+import { useAlert } from '@/lib/viewmodels/AlertContext'
 
 export default function AssessmentSubmissions({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
+  const { showAlert, showLoading, hideLoading } = useAlert()
   const { id } = use(params)
   const [submissions, setSubmissions] = useState<SubmissionWithAssessment[]>([])
   const [loading, setLoading] = useState(true)
+  const [hasMCQMarkingKey, setHasMCQMarkingKey] = useState(false)
 
   useEffect(() => {
     async function load() {
       try {
-        const data = await assessmentService.getSubmissions(id)
-        setSubmissions(data || [])
+        const [subData, keyData] = await Promise.all([
+          assessmentService.getSubmissions(id),
+          assessmentService.getMarkingKeys(id)
+        ])
+        setSubmissions(subData || [])
+        
+        // Check if any MCQ has a marking key
+        const hasMCQKey = keyData?.some(q => {
+          if (q.question_type !== 'mcq') return false
+          const mk = q.marking_keys
+          const key = Array.isArray(mk) ? mk[0] : mk
+          return key && key.correct_option_id
+        })
+        setHasMCQMarkingKey(!!hasMCQKey)
       } catch (err) {
         console.error(err)
       } finally {
@@ -26,6 +41,38 @@ export default function AssessmentSubmissions({ params }: { params: Promise<{ id
     }
     load()
   }, [id])
+
+  const handleAutoMark = async () => {
+    showAlert({
+      title: 'Auto-Mark MCQs',
+      message: 'This will automatically grade all MCQ responses for this assessment. Existing manual grades for MCQs might be overwritten. Continue?',
+      confirmLabel: 'Start Marking',
+      cancelLabel: 'Cancel',
+      variant: 'primary',
+      onConfirm: async () => {
+        showLoading('Marking MCQ responses...')
+        try {
+          await assessmentService.autoMarkMCQ(id)
+          const updatedSubmissions = await assessmentService.getSubmissions(id)
+          setSubmissions(updatedSubmissions || [])
+          showAlert({
+            title: 'Success',
+            message: 'All MCQ responses have been automatically graded.',
+            variant: 'success'
+          })
+        } catch (err) {
+          console.error(err)
+          showAlert({
+            title: 'Error',
+            message: 'Failed to auto-mark responses.',
+            variant: 'danger'
+          })
+        } finally {
+          hideLoading()
+        }
+      }
+    })
+  }
 
   const handleDownloadCSV = () => {
     if (submissions.length === 0) return
@@ -102,6 +149,15 @@ export default function AssessmentSubmissions({ params }: { params: Promise<{ id
         </div>
 
         <div className="flex items-center gap-4">
+          {hasMCQMarkingKey && submissions.length > 0 && (
+            <Button 
+              variant="primary" 
+              icon={Zap}
+              onClick={handleAutoMark}
+            >
+              Auto-Mark MCQs
+            </Button>
+          )}
           <Button 
             variant="secondary" 
             icon={Download}

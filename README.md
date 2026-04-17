@@ -59,7 +59,7 @@ The system uses the `AssessmentContext` to attach native event listeners for `co
 
 ## 📊 Assessment Question JSON Schema
 
-Examiners can bulk-upload questions using a JSON file. The expected format is an array of question objects:
+Examiners can bulk-upload questions using a JSON file. The expected format is an array of question objects, optionally including marking keys for auto-grading.
 
 ```json
 [
@@ -67,12 +67,22 @@ Examiners can bulk-upload questions using a JSON file. The expected format is an
     "content": "What is the capital of France?",
     "question_type": "mcq",
     "marks_possible": 1,
-    "options": ["Paris", "London", "Berlin", "Madrid"]
+    "options": ["Paris", "London", "Berlin", "Madrid"],
+    "marking_key": {
+      "is_auto_mark": true,
+      "correct_option_index": 0,
+      "grading_notes": "Paris is the capital."
+    }
   },
   {
-    "content": "Explain the process of cellular respiration.",
+    "content": "What is 2 + 2?",
     "question_type": "short_answer",
-    "marks_possible": 5
+    "marks_possible": 1,
+    "marking_key": {
+      "is_auto_mark": true,
+      "correct_text_match": "4",
+      "grading_notes": "Numeric '4' only."
+    }
   },
   {
     "content": "Upload a sketch of the human heart.",
@@ -87,3 +97,8 @@ Examiners can bulk-upload questions using a JSON file. The expected format is an
 - `question_type` (string, **required**): Must be one of `mcq`, `short_answer`, or `image_upload`.
 - `marks_possible` (number, **required**): The maximum score for this question.
 - `options` (array of strings, **optional**): Required ONLY for `mcq` type. Each string represents a choice.
+- `marking_key` (object, **optional**): Configuration for grading.
+  - `is_auto_mark` (boolean): Enable automatic grading for this question.
+  - `correct_option_index` (number): The index (0-based) of the correct answer in the `options` array (MCQ only).
+  - `correct_text_match` (string): The exact string to match for auto-grading (Short Answer only).
+  - `grading_notes` (string): Internal rubric or notes for manual grading.

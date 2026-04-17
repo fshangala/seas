@@ -7,11 +7,19 @@ export type SubmissionWithAssessment = Tables<'submissions'> & {
   candidates?: Tables<'candidates'>
 }
 
+export interface BulkMarkingKey {
+  is_auto_mark?: boolean
+  correct_option_index?: number // For MCQ
+  correct_text_match?: string // For Short Answer
+  grading_notes?: string
+}
+
 export interface BulkQuestion {
   content: string
   question_type: string
   marks_possible: number
   options?: string[]
+  marking_key?: BulkMarkingKey
 }
 
 export class AssessmentService {
@@ -341,7 +349,7 @@ export class AssessmentService {
     if (error) throw error
   }
 
-  async addQuestion(assessmentId: string, question: Partial<Tables<'questions'>>, options?: string[]) {
+  async addQuestion(assessmentId: string, question: Partial<Tables<'questions'>>, options?: string[], markingKey?: BulkMarkingKey) {
     const { data: qData, error: qError } = await supabase
       .from('questions')
       .insert({
@@ -356,15 +364,40 @@ export class AssessmentService {
 
     if (qError) throw qError
 
+    let insertedOptions: Tables<'options'>[] = []
     if (options && options.length > 0) {
-      const { error: oError } = await supabase
+      const { data: oData, error: oError } = await supabase
         .from('options')
         .insert(options.map(content => ({
           question_id: qData.id,
           content
         })))
+        .select()
       
       if (oError) throw oError
+      insertedOptions = oData || []
+    }
+
+    if (markingKey) {
+      const keyData: Partial<Tables<'marking_keys'>> = {
+        question_id: qData.id,
+        is_auto_mark: markingKey.is_auto_mark ?? false,
+        grading_notes: markingKey.grading_notes,
+        correct_text_match: markingKey.correct_text_match
+      }
+
+      if (question.question_type === 'mcq' && markingKey.correct_option_index !== undefined) {
+        const correctOption = insertedOptions[markingKey.correct_option_index]
+        if (correctOption) {
+          keyData.correct_option_id = correctOption.id
+        }
+      }
+
+      const { error: kError } = await supabase
+        .from('marking_keys')
+        .insert(keyData)
+      
+      if (kError) throw kError
     }
 
     return qData
@@ -423,7 +456,7 @@ export class AssessmentService {
         question_type: q.question_type,
         marks_possible: q.marks_possible,
         order_index: nextIndex++
-      }, q.options)
+      }, q.options, q.marking_key)
     }
   }
 

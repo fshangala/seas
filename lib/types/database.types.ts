@@ -100,18 +100,18 @@ export type Database = {
       candidate_assessments: {
         Row: {
           assessment_id: string
+          associated_at: string | null
           candidate_id: string
-          created_at: string | null
         }
         Insert: {
           assessment_id: string
+          associated_at?: string | null
           candidate_id: string
-          created_at?: string | null
         }
         Update: {
           assessment_id?: string
+          associated_at?: string | null
           candidate_id?: string
-          created_at?: string | null
         }
         Relationships: [
           {
@@ -395,7 +395,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      auto_mark_mcq: {
+        Args: { assessment_id_param: string }
+        Returns: undefined
+      }
     }
     Enums: {
       user_role: "admin" | "examiner"

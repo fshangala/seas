@@ -10,7 +10,8 @@ SEAS is a resilient, offline-capable platform designed for modern academic and p
 - **Marking & Grading Dashboard**: Dedicated interface for examiners to manage marking keys (correct answers and rubrics) and manually grade candidate submissions with a toggleable reference key.
 - **Hybrid Grading**: Automatic marking for MCQ and short-answer questions via Postgres triggers, with manual grading support for essays and image uploads.
 - **Material Design 3**: A polished, Teal-themed interface with smooth transitions and Material components.
-- **PWA Support**: Installable on desktop and mobile with service worker support for offline access.
+- **Product Landing Page**: A comprehensive root route (`/`) showcasing product features, candidate entrance, and developer contact details.
+- **PWA Installation**: Seamless "Install App" prompt integrated into the UI for a native-like experience on all devices.
 
 ## 🛠 Technical Stack
 

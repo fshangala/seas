@@ -57,6 +57,9 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - [x] **Start Assessment Workflow**: Preview screen with details and explicit session start.
 - [x] **Results Detail Page**: Performance summary and grading status for completed assessments.
 - [x] **Mobile Responsiveness**: Adaptive UI for candidates taking assessments on mobile devices.
+- [x] **Product Landing Page**: Professional root route with hero, features, and developer contact.
+- [x] **PWA Installation**: Integrated "Install App" button with `beforeinstallprompt` handling.
+- [x] **Asset Branding**: Global implementation of `logo.png` for all app icons and favicons.
 
 ### Pending Features (Next Steps)
 - [x] **Image Upload Logic**: Handle handwritten work as Blobs in IDB and sync to Supabase Storage.

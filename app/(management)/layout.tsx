@@ -16,25 +16,41 @@ export default function ManagementLayout({ children }: { children: React.ReactNo
 
   useEffect(() => {
     async function checkUser() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      
+      // Check if any admin exists
+      const { data: adminCheck } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('role', 'admin')
+        .limit(1)
+      
+      const noAdmin = !adminCheck || adminCheck.length === 0
+
+      if (!authUser) {
+        // If no user exists, and no admin exists, we allow access to /admin/dashboard for setup
+        if (pathname === '/admin/dashboard' && noAdmin) {
+          setLoading(false)
+          return
+        }
         router.push('/login')
         return
       }
-      setUser(user)
+      setUser(authUser)
 
-      const { data: profile } = await supabase
+      const { data: profileData } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', authUser.id)
         .single()
       
-      setProfile(profile)
+      setProfile(profileData)
 
       // Role Check
-      if (pathname.startsWith('/admin') && profile?.role !== 'admin') {
+      // Bypass role check for /admin/dashboard if no admin exists
+      if (pathname.startsWith('/admin') && profileData?.role !== 'admin' && !noAdmin) {
         router.push('/examiner/dashboard')
-      } else if (pathname.startsWith('/examiner') && !['admin', 'examiner'].includes(profile?.role || '')) {
+      } else if (pathname.startsWith('/examiner') && !['admin', 'examiner'].includes(profileData?.role || '')) {
         router.push('/')
       }
 
@@ -48,7 +64,14 @@ export default function ManagementLayout({ children }: { children: React.ReactNo
     router.push('/login')
   }
 
-  if (loading || !profile) return <div className="flex-1 flex items-center justify-center font-bold text-teal-600 animate-pulse">Verifying Credentials...</div>
+  if (loading) return <div className="flex-1 flex items-center justify-center font-bold text-teal-600 animate-pulse">Verifying Credentials...</div>
+
+  // If no admin exists and we are on admin/dashboard, we allow rendering even without a profile
+  if (!profile && pathname === '/admin/dashboard') {
+    return <main className="flex-1 min-h-screen bg-slate-50">{children}</main>
+  }
+
+  if (!profile) return <div className="flex-1 flex items-center justify-center font-bold text-teal-600 animate-pulse">Verifying Credentials...</div>
 
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, href: `/${profile.role}/dashboard` },

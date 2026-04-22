@@ -47,6 +47,7 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - [x] Material Design 3 "Teal Theme" implementation.
 - [x] Proctoring Integrity Engine (Copy/Paste block & Tab-switch tracking).
 - [x] **Management Dashboard**: Staff login, registration, and RBAC implementation.
+- [x] **First Admin Setup**: Automatic detection of missing admin profiles on `/admin/dashboard` to facilitate initial system initialization.
 - [x] **Assessment Management**: Draft creation, metadata editing, question management, duplication logic, and read-only publication.
 - [x] **JSON Bulk Operations**: Upload questions via JSON and clear all questions functionality.
 - [x] **Marking Key Management**: Define correct answers, auto-marking rules, and grading notes for published assessments.

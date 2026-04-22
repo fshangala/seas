@@ -43,7 +43,10 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-### 2. Development
+### 2. First Admin Registration
+Once the environment is configured, visit `/admin/dashboard`. If the system detects no administrator profiles, it will present a **System Initialization** form. Use this to create the primary admin account and initialize the management console.
+
+### 3. Development
 ```bash
 npm install
 npm run dev

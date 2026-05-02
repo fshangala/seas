@@ -3,7 +3,9 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { assessmentService, SubmissionWithAssessment } from '@/lib/services/AssessmentService'
-import { Card, Button, StatsCard } from '@/components/ui'
+import Card from '@/components/Card'
+import Button from '@/components/Button'
+import StatsCard from '@/components/StatsCard'
 import { 
   CheckCircle, 
   Clock, 

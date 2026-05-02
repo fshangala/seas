@@ -2,7 +2,10 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, Button, Input, FormGroup } from '@/components/ui'
+import Card from '@/components/Card'
+import Button from '@/components/Button'
+import Input from '@/components/Input'
+import FormGroup from '@/components/FormGroup'
 import { ChevronLeft, Save, BookOpen, Clock, FileText } from 'lucide-react'
 import { assessmentService } from '@/lib/services/AssessmentService'
 

@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useEffect, useState, use } from 'react'
-import { Card, Button } from '@/components/ui'
+import Card from '@/components/Card'
+import Button from '@/components/Button'
 import { assessmentService } from '@/lib/services/AssessmentService'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, Save, Eye, EyeOff, CheckCircle2, AlertCircle } from 'lucide-react'

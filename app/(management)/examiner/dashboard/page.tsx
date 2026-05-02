@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Card, Button } from '@/components/ui'
+import Card from '@/components/Card'
+import Button from '@/components/Button'
 import { Plus, BookOpen, Clock, Users, ChevronRight, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Tables } from '@/lib/types/database.types'

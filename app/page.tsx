@@ -19,7 +19,8 @@ import {
   CheckCircle2,
   ArrowRight
 } from 'lucide-react'
-import { Button, Card } from '@/components/ui'
+import Button from '@/components/Button'
+import Card from '@/components/Card'
 import { assessmentService } from '@/lib/services/AssessmentService'
 
 interface BeforeInstallPromptEvent extends Event {

@@ -3,7 +3,10 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { Button, Card, Input, FormGroup } from '@/components/ui'
+import Button from '@/components/Button'
+import Card from '@/components/Card'
+import Input from '@/components/Input'
+import FormGroup from '@/components/FormGroup'
 import { UserPlus, Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react'
 
 export default function RegisterPage() {

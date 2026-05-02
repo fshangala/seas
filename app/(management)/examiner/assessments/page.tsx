@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, Button } from '@/components/ui'
+import Card from '@/components/Card'
+import Button from '@/components/Button'
 import { 
   Plus, BookOpen, Clock, ChevronRight, 
   Search, Filter, LayoutDashboard, FileText, Trash2

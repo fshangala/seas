@@ -2,7 +2,10 @@
 
 import React, { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { Card, Button, Input, FormGroup } from '@/components/ui'
+import Card from '@/components/Card'
+import Button from '@/components/Button'
+import Input from '@/components/Input'
+import FormGroup from '@/components/FormGroup'
 import { 
   Plus, Save, Trash2, LayoutList, 
   CheckCircle2, AlertTriangle, Send, GripVertical,

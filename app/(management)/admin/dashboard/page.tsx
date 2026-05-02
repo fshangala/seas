@@ -1,7 +1,11 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Card, StatsCard, Button, Input, FormGroup } from '@/components/ui'
+import Card from '@/components/Card'
+import StatsCard from '@/components/StatsCard'
+import Button from '@/components/Button'
+import Input from '@/components/Input'
+import FormGroup from '@/components/FormGroup'
 import { Users, ShieldCheck, Activity, Database, ChevronRight, UserPlus, Mail, Lock, User as UserIcon, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Tables } from '@/lib/types/database.types'

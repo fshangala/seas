@@ -12,7 +12,10 @@ This document provides foundational mandates for AI agents working on the SEAS p
 ## 🏗 Architecture Mandates (MVVM)
 - **Model**: Use `lib/services/` for Supabase API calls and `lib/idb.ts` for IndexedDB operations.
 - **ViewModel**: Use `lib/viewmodels/AssessmentContext.tsx` to manage UI state and handle proctoring logic.
-- **View**: Components in `components/` should remain thin and rely on context for state. Prioritize reusable components for UI patterns (e.g., stats cards, form inputs, layouts) to maintain consistency and reduce duplication.
+- **View**: Components in `components/` should remain thin and rely on context for state. 
+    - **Reusability**: Prioritize using existing reusable components in `components/` (e.g., `Button`, `Card`, `Input`, `StatsCard`).
+    - **New Components**: Create new reusable components when identifying recurring UI patterns to maintain consistency and reduce duplication.
+    - **Logic Splitting**: Avoid bloating page files with too much logic or UI. Split complex logic and large UI sections into dedicated components within the `components/` directory or page-specific sub-components.
 - **Candidates**: All candidate associations MUST use UUID-based `candidate_id` from the `candidates` table. Legacy `student_id` is for identification only.
 
 ## 🛠 Tech Stack Conventions

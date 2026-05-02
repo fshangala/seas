@@ -37,6 +37,11 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - **manifest.json**: Ensure `public/manifest.json` is updated if new assets or theme colors are added.
 - **Service Workers**: Keep `next-pwa` configuration in `next.config.ts` intact for offline reliability.
 
+## 📝 Documentation & Planning
+- **Continuous Documentation**: ALWAYS update relevant `.md` files (e.g., `GEMINI.md`, `AGENTS.md`, or feature-specific docs) whenever a change is made that introduces a new feature, modifies an existing feature, or changes documented logic.
+- **Task Tracking**: For every new plan or significant directive, create (or update) a `todo.md` file in the project root.
+- **Progress Updates**: List all tasks for the plan in `todo.md` and mark them as completed (`[x]`) as you progress through each stage of implementation.
+
 ## ✅ Development Progress & TODO
 
 ### Core Infrastructure

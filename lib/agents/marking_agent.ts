@@ -1,4 +1,4 @@
-import { createAgent, tool } from 'langchain';
+import { createAgent } from 'langchain';
 import { openaiModel } from '../models/openai_model';
 import * as z from 'zod';
 

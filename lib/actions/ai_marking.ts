@@ -12,14 +12,14 @@ export async function aiMarking({
     response: Tables<'responses'>,
     marking_key: Tables<'marking_keys'>,
 }) {
-    let prompt = `
+    const prompt = `
     Please mark this candidate response.
     
     Question: ${JSON.stringify(question)}
     Response: ${JSON.stringify(response)}
     Marking Key: ${JSON.stringify(marking_key)}`;
 
-    let res = await marking_agent.invoke({
+    const res = await marking_agent.invoke({
         messages: [
             {
                 role: 'user',

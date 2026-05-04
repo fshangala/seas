@@ -38,10 +38,9 @@ export default function GradeSubmission({ params }: { params: Promise<{ id: stri
   const handleAiMark = async (resp: FullSubmission['responses'][0]) => {
     const q = resp.questions
     const mk = q.marking_keys
-    const key = (Array.isArray(mk) ? mk[0] : mk) as Tables<'marking_keys'> | undefined
 
     setAiLoading(prev => ({ ...prev, [resp.id]: true }))
-    aiMarking({question: q, response: resp, marking_key: q.marking_keys[0]}).then((value)=>{
+    aiMarking({question: q, response: resp, marking_key: mk[0]}).then((value)=>{
       console.log(value);
       setGrades(prev => ({ ...prev, [resp.id]: value.marks }))
       setAiSuggestions(prev => ({...prev, [resp.id]: value}))

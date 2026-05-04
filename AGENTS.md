@@ -10,15 +10,20 @@ Heed all deprecation notices and favor modern patterns (App Router, Server Compo
 This document provides foundational mandates for AI agents working on the SEAS project.
 
 ## 🏗 Architecture Mandates (MVVM)
-- **Model**: Use `lib/services/` for Supabase API calls and `lib/idb.ts` for IndexedDB operations.
+- **Model**: Use `lib/services/` for Supabase API calls, `lib/idb.ts` for IndexedDB, and `lib/models/` for AI model configurations.
 - **ViewModel**: Use `lib/viewmodels/AssessmentContext.tsx` to manage UI state and handle proctoring logic.
-- **View**: Components in `components/` should remain thin and rely on context for state. Prioritize reusable components for UI patterns (e.g., stats cards, form inputs, layouts) to maintain consistency and reduce duplication.
+- **View**: Components in `components/` should remain thin and rely on context for state. 
+    - **Reusability**: Prioritize using existing reusable components in `components/` (e.g., `Button`, `Card`, `Input`, `StatsCard`).
+    - **New Components**: Create new reusable components when identifying recurring UI patterns to maintain consistency and reduce duplication.
+    - **Logic Splitting**: Avoid bloating page files with too much logic or UI. Split complex logic and large UI sections into dedicated components within the `components/` directory or page-specific sub-components.
+- **Agents**: Use `lib/agents/` for specialized LangChain agents. Each agent should be in its own file and focus on a specific task (e.g., `marking_agent.ts`).
 - **Candidates**: All candidate associations MUST use UUID-based `candidate_id` from the `candidates` table. Legacy `student_id` is for identification only.
 
 ## 🛠 Tech Stack Conventions
 - **Tailwind 4**: Use the new `@theme` and `@layer` syntax in `app/globals.css`.
 - **IndexedDB**: Use the raw `IDBService` in `lib/idb.ts`. Avoid adding third-party storage libraries unless explicitly requested.
 - **Supabase**: Always use the typed client from `lib/supabase.ts` and ensure database types in `lib/types/database.types.ts` are kept up to date.
+- **AI**: Use **LangChain** with **OpenAI SDK** for all AI features. Centralize model configuration in `lib/models/openai_model.ts`.
 
 ## 🔐 Security & Integrity Rules
 - **Proctoring**: NEVER remove or disable the `visibilitychange`, `copy`, `paste`, or `cut` listeners in `AssessmentContext` without explicit user instruction.
@@ -36,6 +41,11 @@ This document provides foundational mandates for AI agents working on the SEAS p
 ## 🔄 Deployment & PWA
 - **manifest.json**: Ensure `public/manifest.json` is updated if new assets or theme colors are added.
 - **Service Workers**: Keep `next-pwa` configuration in `next.config.ts` intact for offline reliability.
+
+## 📝 Documentation & Planning
+- **Continuous Documentation**: ALWAYS update relevant `.md` files (e.g., `GEMINI.md`, `AGENTS.md`, or feature-specific docs) whenever a change is made that introduces a new feature, modifies an existing feature, or changes documented logic.
+- **Task Tracking**: For every new plan or significant directive, create (or update) a `todo.md` file in the project root.
+- **Progress Updates**: List all tasks for the plan in `todo.md` and mark them as completed (`[x]`) as you progress through each stage of implementation.
 
 ## ✅ Development Progress & TODO
 
@@ -61,6 +71,7 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - [x] **Product Landing Page**: Professional root route with hero, features, and developer contact.
 - [x] **PWA Installation**: Integrated "Install App" button with `beforeinstallprompt` handling.
 - [x] **Asset Branding**: Global implementation of `logo.png` for all app icons and favicons.
+- [x] **AI Marking Assistant**: LangChain-powered agent for automated mark suggestions and reasoning in the examiner dashboard.
 
 ### Pending Features (Next Steps)
 - [x] **Image Upload Logic**: Handle handwritten work as Blobs in IDB and sync to Supabase Storage.

@@ -3,7 +3,10 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { assessmentService, SubmissionWithAssessment } from '@/lib/services/AssessmentService'
-import { Card, Button, Input, StatsCard } from '@/components/ui'
+import Card from '@/components/Card'
+import Button from '@/components/Button'
+import Input from '@/components/Input'
+import StatsCard from '@/components/StatsCard'
 import { 
   BookOpen, 
   CheckCircle, 

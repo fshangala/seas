@@ -1,13 +1,15 @@
 'use client'
 
 import React, { useEffect, useState, use } from 'react'
-import { Card, Button } from '@/components/ui'
+import Card from '@/components/Card'
+import Button from '@/components/Button'
 import { assessmentService } from '@/lib/services/AssessmentService'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, Save, Eye, EyeOff, CheckCircle2, AlertCircle } from 'lucide-react'
+import { ChevronLeft, Save, Eye, EyeOff, CheckCircle2, AlertCircle, Sparkles, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 
 import { Tables } from '@/lib/types/database.types'
+import { aiMarking } from '@/lib/actions/ai_marking'
 
 type FullSubmission = Tables<'submissions'> & {
   assessments: Tables<'assessments'>
@@ -28,6 +30,35 @@ export default function GradeSubmission({ params }: { params: Promise<{ id: stri
   const [showKeys, setShowKeys] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+
+  // AI Marking States
+  const [aiLoading, setAiLoading] = useState<Record<string, boolean>>({})
+  const [aiSuggestions, setAiSuggestions] = useState<Record<string, { marks: number, reasoning: string }>>({})
+  const [submissionAiMarkingLoading, setSubmissionAiMarkingLoading] = useState(false)
+
+  const handleAiMark = async (resp: FullSubmission['responses'][0]) => {
+    const q = resp.questions
+    const mk = q.marking_keys
+
+    setAiLoading(prev => ({ ...prev, [resp.id]: true }))
+    try {
+      const res = await aiMarking({question: q, response: resp, marking_key: mk[0]});
+      setGrades(prev => ({ ...prev, [resp.id]: res.marks }))
+      setAiSuggestions(prev => ({...prev, [resp.id]: res}))
+    } catch (error) {
+      console.error('AI Marking Error:', error)
+    } finally {
+      setAiLoading(prev => ({ ...prev, [resp.id]: false }))
+    }
+  }
+
+  const handleAiSubmissionMarking = async () => {
+    setSubmissionAiMarkingLoading(true)
+    for (const resp of submission?.responses || []) {
+      await handleAiMark(resp)
+    }
+    setSubmissionAiMarkingLoading(false)
+  }
 
   useEffect(() => {
     async function load() {
@@ -109,6 +140,14 @@ export default function GradeSubmission({ params }: { params: Promise<{ id: stri
             className="rounded-xl"
           >
             {showKeys ? 'Hide Marking Key' : 'Show Marking Key'}
+          </Button>
+          <Button 
+            icon={Sparkles} 
+            onClick={handleAiSubmissionMarking} 
+            disabled={submissionAiMarkingLoading}
+            className="rounded-xl shadow-lg shadow-teal-500/20"
+          >
+            {submissionAiMarkingLoading ? 'AI Marking...' : 'Mark All with AI'}
           </Button>
           <Button 
             icon={Save} 
@@ -206,6 +245,40 @@ export default function GradeSubmission({ params }: { params: Promise<{ id: stri
                       </p>
                     )}
                   </div>
+
+                  {/* AI Marking Button */}
+                  <div className="flex items-center gap-4 mt-2">
+                    <Button
+                      variant="secondary"
+                      icon={aiLoading[resp.id] ? Loader2 : Sparkles}
+                      onClick={() => handleAiMark(resp)}
+                      disabled={aiLoading[resp.id]}
+                      className={`rounded-xl text-[10px] font-black uppercase tracking-widest ${aiLoading[resp.id] ? 'animate-pulse' : ''}`}
+                    >
+                      {aiLoading[resp.id] ? 'AI Marking...' : 'Mark with AI'}
+                    </Button>
+                  </div>
+
+                  {/* AI Suggestion Display */}
+                  {aiSuggestions[resp.id] && (
+                    <div className="mt-4 p-6 bg-teal-50 border border-teal-100 rounded-2xl flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Sparkles size={14} className="text-teal-600" />
+                          <span className="text-[10px] font-black uppercase tracking-widest text-teal-600">AI Evaluation Agent</span>
+                        </div>
+                        <span className="px-3 py-1 bg-teal-600 text-white rounded-lg text-xs font-black">
+                          {aiSuggestions[resp.id].marks} / {q.marks_possible} Marks Suggested
+                        </span>
+                      </div>
+                      <p className="text-slate-700 text-sm leading-relaxed">
+                        {aiSuggestions[resp.id].reasoning}
+                      </p>
+                      <div className="text-[10px] font-bold text-teal-400 italic">
+                        * Marks have been automatically filled in the input field.
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Marking Key (Conditional) */}

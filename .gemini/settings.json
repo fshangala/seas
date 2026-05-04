@@ -3,6 +3,10 @@
     "supabase": {
       "url": "https://mcp.supabase.com/mcp?project_ref=zlkntrnvutfglssfkmuh&features=docs%2Cdatabase%2Cdebugging%2Cdevelopment%2Cstorage",
       "type": "http"
+    },
+    "langchain-docs": {
+      "url": "https://docs.langchain.com/mcp",
+      "type": "http"
     }
   }
 }

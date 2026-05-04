@@ -34,21 +34,30 @@ export default function GradeSubmission({ params }: { params: Promise<{ id: stri
   // AI Marking States
   const [aiLoading, setAiLoading] = useState<Record<string, boolean>>({})
   const [aiSuggestions, setAiSuggestions] = useState<Record<string, { marks: number, reasoning: string }>>({})
+  const [submissionAiMarkingLoading, setSubmissionAiMarkingLoading] = useState(false)
 
   const handleAiMark = async (resp: FullSubmission['responses'][0]) => {
     const q = resp.questions
     const mk = q.marking_keys
 
     setAiLoading(prev => ({ ...prev, [resp.id]: true }))
-    aiMarking({question: q, response: resp, marking_key: mk[0]}).then((value)=>{
-      console.log(value);
-      setGrades(prev => ({ ...prev, [resp.id]: value.marks }))
-      setAiSuggestions(prev => ({...prev, [resp.id]: value}))
-    }).catch((reason)=>{
-      console.error(reason);
-    }).finally(()=>{
+    try {
+      const res = await aiMarking({question: q, response: resp, marking_key: mk[0]});
+      setGrades(prev => ({ ...prev, [resp.id]: res.marks }))
+      setAiSuggestions(prev => ({...prev, [resp.id]: res}))
+    } catch (error) {
+      console.error('AI Marking Error:', error)
+    } finally {
       setAiLoading(prev => ({ ...prev, [resp.id]: false }))
-    });
+    }
+  }
+
+  const handleAiSubmissionMarking = async () => {
+    setSubmissionAiMarkingLoading(true)
+    for (const resp of submission?.responses || []) {
+      await handleAiMark(resp)
+    }
+    setSubmissionAiMarkingLoading(false)
   }
 
   useEffect(() => {
@@ -131,6 +140,14 @@ export default function GradeSubmission({ params }: { params: Promise<{ id: stri
             className="rounded-xl"
           >
             {showKeys ? 'Hide Marking Key' : 'Show Marking Key'}
+          </Button>
+          <Button 
+            icon={Sparkles} 
+            onClick={handleAiSubmissionMarking} 
+            disabled={submissionAiMarkingLoading}
+            className="rounded-xl shadow-lg shadow-teal-500/20"
+          >
+            {submissionAiMarkingLoading ? 'AI Marking...' : 'Mark All with AI'}
           </Button>
           <Button 
             icon={Save} 

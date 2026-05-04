@@ -15,3 +15,6 @@
 - [x] Update `AGENTS.md` to prioritize reusable components
 - [x] Add mandate to split page logic into components
 - [x] Create `todo.md` for task tracking.
+
+## AI & Automation
+- [x] **AI Marking Assistant**: Implement LangChain agents for automated grading suggestions and reasoning.

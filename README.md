@@ -9,6 +9,7 @@ SEAS is a resilient, offline-capable platform designed for modern academic and p
 - **Assessment Management**: Comprehensive examiner tools for creating, editing, and publishing assessments. Includes metadata editing, question management, and duplication logic for versioning published assessments.
 - **Marking & Grading Dashboard**: Dedicated interface for examiners to manage marking keys (correct answers and rubrics) and manually grade candidate submissions with a toggleable reference key.
 - **Hybrid Grading**: Automatic marking for MCQ and short-answer questions via Postgres triggers, with manual grading support for essays and image uploads.
+- **AI-Assisted Marking**: Integrated LangChain agents to provide automated mark suggestions and technical reasoning for descriptive responses, helping examiners grade faster and more accurately.
 - **Material Design 3**: A polished, Teal-themed interface with smooth transitions and Material components.
 - **Product Landing Page**: A comprehensive root route (`/`) showcasing product features, candidate entrance, and developer contact details.
 - **PWA Installation**: Seamless "Install App" prompt integrated into the UI for a native-like experience on all devices.
@@ -20,6 +21,7 @@ SEAS is a resilient, offline-capable platform designed for modern academic and p
 - **Database**: Supabase (Postgres + Auth + Storage)
 - **Persistence**: Raw IndexedDB for local caching and offline sync.
 - **State Management**: React Context + useReducer
+- **AI Engine**: LangChain + OpenAI SDK
 - **Design**: Tailwind CSS 4 + Lucide Icons
 
 ## 📖 Database Schema

@@ -9,7 +9,6 @@ import FormGroup from '@/components/FormGroup'
 import { Users, ShieldCheck, Activity, Database, ChevronRight, UserPlus, Mail, Lock, User as UserIcon, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Tables } from '@/lib/types/database.types'
-import { useRouter } from 'next/navigation'
 
 function FirstAdminSetup() {
   const [email, setEmail] = useState('')
@@ -18,7 +17,6 @@ function FirstAdminSetup() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
-  const router = useRouter()
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()

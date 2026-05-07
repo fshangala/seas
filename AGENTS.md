@@ -1,8 +1,9 @@
 <!-- BEGIN:nextjs-agent-rules -->
 # Next.js Coding Rules
 This version of Next.js may have breaking changes or conventions that differ from your training data. 
-Before writing code, read the relevant guide in `node_modules/next/dist/docs/`.
-Heed all deprecation notices and favor modern patterns (App Router, Server Components).
+- **Next.js 16+**: Use `proxy.ts` instead of `middleware.ts`. Export a function named `proxy`.
+- **App Router**: Heed all deprecation notices and favor modern patterns (Server Components, Server Actions).
+- **Authentication**: Use `@supabase/ssr` for both client and server contexts.
 <!-- END:nextjs-agent-rules -->
 
 # SEAS Agent Instructions

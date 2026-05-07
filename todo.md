@@ -17,4 +17,4 @@
 - [x] Create `todo.md` for task tracking.
 
 ## Infrastructure
-- [x] **Supabase SSR Integration**: Added server-side Supabase client, middleware for session refreshing, and migrated auth to Server Actions.
+- [x] **Supabase SSR Integration**: Added server-side Supabase client, `proxy.ts` (Next.js 16) for session refreshing, and migrated auth to Server Actions.

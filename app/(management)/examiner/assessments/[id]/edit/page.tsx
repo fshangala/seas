@@ -10,12 +10,13 @@ import {
   Plus, Save, Trash2, LayoutList, 
   CheckCircle2, AlertTriangle, Send, GripVertical,
   LayoutDashboard, BookOpen, Share2, Check, Settings, Copy,
-  Clock, FileText, Upload
+  Clock, FileText, Code
 } from 'lucide-react'
 import { assessmentService } from '@/lib/services/AssessmentService'
 import { useAlert } from '@/lib/viewmodels/AlertContext'
 import { supabase } from '@/lib/supabase'
 import { Tables } from '@/lib/types/database.types'
+import QuestionJsonForm from '@/components/QuestionJsonForm'
 
 type FullQuestion = Tables<'questions'> & {
   options: Tables<'options'>[]
@@ -32,7 +33,7 @@ export default function EditAssessmentPage() {
   const [copying, setCopying] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
   const [savingSettings, setSavingSettings] = useState(false)
-  const [uploading, setUploading] = useState(false)
+  const [showBulkImport, setShowBulkImport] = useState(false)
   const [clearing, setClearing] = useState(false)
 
   // Settings state
@@ -242,42 +243,6 @@ export default function EditAssessmentPage() {
     })
   }
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-      const content = e.target?.result
-      if (typeof content !== 'string') return
-
-      try {
-        const jsonData = JSON.parse(content)
-        if (!Array.isArray(jsonData)) throw new Error('Invalid format: Expected an array of questions')
-        
-        setUploading(true)
-        await assessmentService.addQuestionsBulk(id as string, jsonData)
-        await loadQuestions()
-        showAlert({
-          title: 'Import Successful',
-          message: 'Questions have been uploaded and added to the assessment.',
-          variant: 'success'
-        })
-      } catch (err) {
-        console.error(err)
-        showAlert({
-          title: 'Import Error',
-          message: `Failed to upload questions: ${err instanceof Error ? err.message : 'Invalid JSON'}`,
-          variant: 'danger'
-        })
-      } finally {
-        setUploading(false)
-        event.target.value = '' // Reset input
-      }
-    }
-    reader.readAsText(file)
-  }
-
   const handlePublish = async () => {
     if (questions.length === 0) {
       return showAlert({
@@ -443,21 +408,13 @@ export default function EditAssessmentPage() {
             <div className="flex items-center gap-4">
               {!assessment.is_published && (
                 <>
-                  <input
-                    type="file"
-                    accept=".json"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="json-upload"
-                  />
                   <Button 
                     variant="secondary" 
-                    className="px-3 py-1.5 h-auto text-xs" 
-                    icon={Upload}
-                    onClick={() => document.getElementById('json-upload')?.click()}
-                    disabled={uploading}
+                    className={`px-3 py-1.5 h-auto text-xs transition-all ${showBulkImport ? 'bg-teal-500 text-white border-teal-500' : ''}`} 
+                    icon={Code}
+                    onClick={() => setShowBulkImport(!showBulkImport)}
                   >
-                    {uploading ? 'Uploading...' : 'Upload JSON'}
+                    {showBulkImport ? 'Hide Import' : 'Bulk Import'}
                   </Button>
                   <Button 
                     variant="secondary" 
@@ -475,6 +432,17 @@ export default function EditAssessmentPage() {
               </span>
             </div>
           </div>
+
+          {showBulkImport && !assessment.is_published && (
+            <QuestionJsonForm 
+              assessmentId={id as string} 
+              onSuccess={async () => {
+                await loadQuestions()
+                setShowBulkImport(false)
+              }}
+              onCancel={() => setShowBulkImport(false)}
+            />
+          )}
 
           <div className="flex flex-col gap-4">
             {questions.map((q, idx) => (

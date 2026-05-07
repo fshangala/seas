@@ -28,7 +28,7 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - **AI**: Use **LangChain** with **OpenAI SDK** for all AI features. Centralize model configuration in `lib/models/openai_model.ts`.
 
 ## 🔐 Security & Integrity Rules
-- **Proctoring**: NEVER remove or disable the `visibilitychange`, `copy`, `paste`, or `cut` listeners in `AssessmentContext` without explicit user instruction.
+- **Proctoring**: NEVER remove or disable the `visibilitychange`, `copy`, `paste`, or `cut` listeners in `AssessmentContext` without explicit user instruction. Proctoring is automatically disabled on management routes (`/admin`, `/examiner`) to facilitate administrative tasks.
 - **Data Sync**: Ensure all local responses are marked with `synced: false` until successfully persisted to Supabase.
 - **Sensitive Data**: Do not log `student_id` or `assessment_code` to external services. Use the built-in `audit_logs` for tracking.
 - **Immutability**: Published assessments MUST remain read-only. Any modifications (metadata or questions) must be performed on a duplicate draft.
@@ -62,7 +62,8 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - [x] **Management Dashboard**: Staff login, registration, and RBAC implementation.
 - [x] **First Admin Setup**: Automatic detection of missing admin profiles on `/admin/dashboard` to facilitate initial system initialization.
 - [x] **Assessment Management**: Draft creation, metadata editing, question management, duplication logic, and read-only publication.
-- [x] **JSON Bulk Operations**: Upload questions via JSON and clear all questions functionality.
+- [x] **JSON Bulk Operations**: Paste question JSON directly with a built-in "AI Prompt" helper and server action processing.
+- [x] **Clear All Questions**: Functionality to remove all questions from an assessment draft.
 - [x] **Marking Key Management**: Define correct answers, auto-marking rules, and grading notes for published assessments.
 - [x] **Manual Grading Interface**: UI for examiners to review and grade essays and image uploads with toggleable marking keys.
 - [x] **Candidate Profiles**: Persistent registration for candidates via the `candidates` table.

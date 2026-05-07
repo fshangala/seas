@@ -10,7 +10,8 @@ import {
   Plus, Save, Trash2, LayoutList, 
   CheckCircle2, AlertTriangle, Send, GripVertical,
   LayoutDashboard, BookOpen, Share2, Check, Settings, Copy,
-  Clock, FileText, Code
+  Clock, FileText, Code,
+  Lightbulb
 } from 'lucide-react'
 import { assessmentService } from '@/lib/services/AssessmentService'
 import { useAlert } from '@/lib/viewmodels/AlertContext'
@@ -327,6 +328,9 @@ export default function EditAssessmentPage() {
         </div>
 
         <div className="flex items-center gap-4">
+          <Button icon={Lightbulb} onClick={() => router.push(`/examiner/marking/${assessment.id}/key`)} disabled={publishing}>
+            Create/Update Marking Key
+          </Button>
           {assessment.is_published ? (
             <Button variant="secondary" icon={Copy} onClick={handleDuplicate} disabled={duplicating}>
               {duplicating ? 'Duplicating...' : 'Duplicate as Draft'}

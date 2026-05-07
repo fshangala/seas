@@ -10,9 +10,9 @@ import { useRouter } from 'next/navigation'
 import { Tables } from '@/lib/types/database.types'
 
 type AssessmentWithDetails = Tables<'assessments'> & {
-  questions: (Tables<'questions'> & {
-    marking_keys: Tables<'marking_keys'>[]
-  })[]
+  questions: {
+    count: number
+  }[]
 }
 
 export default function MarkingDashboard() {
@@ -24,8 +24,8 @@ export default function MarkingDashboard() {
   useEffect(() => {
     async function load() {
       try {
-        const data = await assessmentService.getPublishedAssessments()
-        setAssessments(data as unknown as AssessmentWithDetails[])
+        const data = await assessmentService.getExaminerAssessments()
+        setAssessments(data)
       } catch (err) {
         console.error(err)
       } finally {
@@ -60,11 +60,6 @@ export default function MarkingDashboard() {
         ) : (
           assessments.map((a) => {
             const isExpanded = expandedId === a.id
-            const hasMarkingKey = a.questions?.some((q) => {
-              const mk = q.marking_keys
-              if (!mk) return false
-              return Array.isArray(mk) ? mk.length > 0 : true
-            })
             
             return (
               <Card 
@@ -88,10 +83,10 @@ export default function MarkingDashboard() {
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    {hasMarkingKey && (
+                    {a.is_published && (
                       <div className="flex items-center gap-1.5 px-3 py-1 bg-teal-50 text-teal-600 rounded-full">
                         <CheckCircle size={14} />
-                        <span className="text-[10px] font-bold uppercase tracking-widest">Key Set</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest">Published</span>
                       </div>
                     )}
                     {isExpanded ? <ChevronUp className="text-slate-400" /> : <ChevronDown className="text-slate-400" />}
@@ -131,7 +126,7 @@ export default function MarkingDashboard() {
                         className="flex-1 rounded-xl"
                         onClick={() => router.push(`/examiner/marking/${a.id}/key`)}
                       >
-                        {hasMarkingKey ? 'Update Marking Key' : 'Create Marking Key'}
+                        Create/Update Marking Key
                       </Button>
                     </div>
                   </div>

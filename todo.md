@@ -16,5 +16,5 @@
 - [x] Add mandate to split page logic into components
 - [x] Create `todo.md` for task tracking.
 
-## AI & Automation
-- [x] **AI Marking Assistant**: Implement LangChain agents for automated grading suggestions and reasoning.
+## Infrastructure
+- [x] **Supabase SSR Integration**: Added server-side Supabase client, `proxy.ts` (Next.js 16) for session refreshing, and migrated auth to Server Actions.

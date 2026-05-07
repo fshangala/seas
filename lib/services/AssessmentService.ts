@@ -1,6 +1,8 @@
-import { supabase } from '../supabase'
+import { supabase as browserSupabase } from '../supabase'
 import { idb } from '../idb'
 import { Tables } from '../types/database.types'
+import { SupabaseClient } from '@supabase/supabase-js'
+import { Database } from '../types/database.types'
 
 export type SubmissionWithAssessment = Tables<'submissions'> & {
   assessments: Tables<'assessments'>
@@ -23,8 +25,14 @@ export interface BulkQuestion {
 }
 
 export class AssessmentService {
+  private supabase: SupabaseClient<Database>
+
+  constructor(supabaseClient?: SupabaseClient<Database>) {
+    this.supabase = supabaseClient || browserSupabase
+  }
+
   async getCandidateByStudentId(studentId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('candidates')
       .select('*')
       .eq('student_id', studentId)
@@ -35,7 +43,7 @@ export class AssessmentService {
   }
 
   async getCandidateById(id: string) {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('candidates')
       .select('*')
       .eq('id', id)
@@ -46,7 +54,7 @@ export class AssessmentService {
   }
 
   async createCandidate(studentId: string, firstName: string, lastName: string) {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('candidates')
       .insert({
         student_id: studentId,
@@ -61,7 +69,7 @@ export class AssessmentService {
   }
 
   async associateCandidateWithAssessment(candidateId: string, assessmentId: string) {
-    const { error } = await supabase
+    const { error } = await this.supabase
       .from('candidate_assessments')
       .upsert({
         candidate_id: candidateId,
@@ -73,7 +81,7 @@ export class AssessmentService {
 
   async getAssessmentByCode(code: string) {
     // 1. Fetch Assessment
-    const { data: assessment, error: aError } = await supabase
+    const { data: assessment, error: aError } = await this.supabase
       .from('assessments')
       .select('*')
       .eq('assessment_code', code)
@@ -82,7 +90,7 @@ export class AssessmentService {
     if (aError || !assessment) throw new Error('Assessment not found')
 
     // 2. Fetch Questions & Options
-    const { data: questions, error: qError } = await supabase
+    const { data: questions, error: qError } = await this.supabase
       .from('questions')
       .select('*, options(*)')
       .eq('assessment_id', assessment.id)
@@ -95,13 +103,16 @@ export class AssessmentService {
       questions: questions || []
     }
 
-    // 3. Cache in IndexedDB
-    await idb.init()
-    const db = idb.db
-    if (!db) throw new Error('Database not initialized')
-    const transaction = db.transaction(['assessment_cache'], 'readwrite')
-    const store = transaction.objectStore('assessment_cache')
-    store.put(fullAssessment)
+    // 3. Cache in IndexedDB (only if on client side)
+    if (typeof window !== 'undefined') {
+      await idb.init()
+      const db = idb.db
+      if (db) {
+        const transaction = db.transaction(['assessment_cache'], 'readwrite')
+        const store = transaction.objectStore('assessment_cache')
+        store.put(fullAssessment)
+      }
+    }
 
     return fullAssessment
   }
@@ -112,7 +123,7 @@ export class AssessmentService {
     if (existing) return existing
 
     // 2. Attempt to insert
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('submissions')
       .insert({
         assessment_id: assessmentId,
@@ -134,7 +145,7 @@ export class AssessmentService {
   }
 
   async getSubmission(assessmentId: string, candidateId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('submissions')
       .select('*')
       .eq('assessment_id', assessmentId)
@@ -146,7 +157,7 @@ export class AssessmentService {
   }
 
   async getSubmissionsByCandidate(candidateId: string): Promise<SubmissionWithAssessment[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('submissions')
       .select('*, assessments(title, assessment_code)')
       .eq('candidate_id', candidateId)
@@ -157,7 +168,7 @@ export class AssessmentService {
   }
 
   async getSubmissionDetails(candidateId: string, assessmentId: string): Promise<SubmissionWithAssessment> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('submissions')
       .select('*, assessments(title, assessment_code, description, duration_minutes)')
       .eq('candidate_id', candidateId)
@@ -173,7 +184,7 @@ export class AssessmentService {
     const unsynced = localResponses.filter(r => !r.synced)
 
     for (const resp of unsynced) {
-      const { error } = await supabase
+      const { error } = await this.supabase
         .from('responses')
         .upsert({
           submission_id: submissionId,
@@ -194,7 +205,7 @@ export class AssessmentService {
     const unsynced = localLogs.filter(l => !l.synced)
 
     for (const log of unsynced) {
-      const { error } = await supabase
+      const { error } = await this.supabase
         .from('audit_logs')
         .insert({
           candidate_id: candidateId,
@@ -215,10 +226,10 @@ export class AssessmentService {
   }
 
   async getExaminerAssessments() {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await this.supabase.auth.getUser()
     if (!user) throw new Error('Not authenticated')
 
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('assessments')
       .select('*, questions(count)')
       .eq('created_by', user.id)
@@ -229,10 +240,10 @@ export class AssessmentService {
   }
 
   async createAssessment(title: string, durationMinutes: number, description?: string) {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await this.supabase.auth.getUser()
     if (!user) throw new Error('Not authenticated')
 
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('assessments')
       .insert({
         title,
@@ -250,7 +261,7 @@ export class AssessmentService {
   }
 
   async updateAssessment(id: string, updates: Partial<Tables<'assessments'>>) {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('assessments')
       .update(updates)
       .eq('id', id)
@@ -263,7 +274,7 @@ export class AssessmentService {
 
   async publishAssessment(id: string) {
     const code = Math.random().toString(36).substring(2, 8).toUpperCase()
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('assessments')
       .update({
         is_published: true,
@@ -279,24 +290,24 @@ export class AssessmentService {
 
   async duplicateAssessment(id: string) {
     // 1. Fetch original
-    const { data: original, error: oError } = await supabase
+    const { data: original, error: oError } = await this.supabase
       .from('assessments')
       .select('*')
       .eq('id', id)
       .single()
     if (oError) throw oError
 
-    const { data: questions, error: qError } = await supabase
+    const { data: questions, error: qError } = await this.supabase
       .from('questions')
       .select('*, options(*)')
       .eq('assessment_id', id)
     if (qError) throw qError
 
     // 2. Create new assessment
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await this.supabase.auth.getUser()
     if (!user) throw new Error('Not authenticated')
 
-    const { data: duplicate, error: dError } = await supabase
+    const { data: duplicate, error: dError } = await this.supabase
       .from('assessments')
       .insert({
         title: `${original.title} (Copy)`,
@@ -312,7 +323,7 @@ export class AssessmentService {
 
     // 3. Clone questions and options
     for (const q of (questions || [])) {
-      const { data: newQ, error: nqError } = await supabase
+      const { data: newQ, error: nqError } = await this.supabase
         .from('questions')
         .insert({
           assessment_id: duplicate.id,
@@ -327,7 +338,7 @@ export class AssessmentService {
       if (nqError) throw nqError
 
       if (q.options && q.options.length > 0) {
-        const { error: noError } = await supabase
+        const { error: noError } = await this.supabase
           .from('options')
           .insert(q.options.map((o: Tables<'options'>) => ({
             question_id: newQ.id,
@@ -341,7 +352,7 @@ export class AssessmentService {
   }
 
   async deleteAssessment(id: string) {
-    const { error } = await supabase
+    const { error } = await this.supabase
       .from('assessments')
       .delete()
       .eq('id', id)
@@ -350,7 +361,7 @@ export class AssessmentService {
   }
 
   async addQuestion(assessmentId: string, question: Partial<Tables<'questions'>>, options?: string[], markingKey?: BulkMarkingKey) {
-    const { data: qData, error: qError } = await supabase
+    const { data: qData, error: qError } = await this.supabase
       .from('questions')
       .insert({
         content: question.content || '',
@@ -366,7 +377,7 @@ export class AssessmentService {
 
     let insertedOptions: Tables<'options'>[] = []
     if (options && options.length > 0) {
-      const { data: oData, error: oError } = await supabase
+      const { data: oData, error: oError } = await this.supabase
         .from('options')
         .insert(options.map(content => ({
           question_id: qData.id,
@@ -393,7 +404,7 @@ export class AssessmentService {
         }
       }
 
-      const { error: kError } = await supabase
+      const { error: kError } = await this.supabase
         .from('marking_keys')
         .insert(keyData)
       
@@ -404,7 +415,7 @@ export class AssessmentService {
   }
 
   async updateQuestion(id: string, updates: Partial<Tables<'questions'>>, options?: { id?: string, content: string }[]) {
-    const { error: qError } = await supabase
+    const { error: qError } = await this.supabase
       .from('questions')
       .update(updates)
       .eq('id', id)
@@ -413,13 +424,11 @@ export class AssessmentService {
 
     if (options) {
       // Simple approach: delete all and re-add if they don't have IDs, or update if they do.
-      // For simplicity in this MVP, let's assume we replace them or manage them separately.
-      // A more robust way would be to diff them.
     }
   }
 
   async deleteQuestion(id: string) {
-    const { error } = await supabase
+    const { error } = await this.supabase
       .from('questions')
       .delete()
       .eq('id', id)
@@ -428,7 +437,7 @@ export class AssessmentService {
   }
 
   async clearQuestions(assessmentId: string) {
-    const { error } = await supabase
+    const { error } = await this.supabase
       .from('questions')
       .delete()
       .eq('assessment_id', assessmentId)
@@ -438,7 +447,7 @@ export class AssessmentService {
 
   async addQuestionsBulk(assessmentId: string, questions: BulkQuestion[]) {
     // Get current max order_index
-    const { data: existingQ } = await supabase
+    const { data: existingQ } = await this.supabase
       .from('questions')
       .select('order_index')
       .eq('assessment_id', assessmentId)
@@ -461,7 +470,7 @@ export class AssessmentService {
   }
 
   async completeSubmission(submissionId: string) {
-    const { error } = await supabase
+    const { error } = await this.supabase
       .from('submissions')
       .update({
         client_end_time: new Date().toISOString()
@@ -472,7 +481,7 @@ export class AssessmentService {
   }
 
   async getPublishedAssessments() {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('assessments')
       .select('*, questions(id, content, question_type, marks_possible, marking_keys(id))')
       .eq('is_published', true)
@@ -483,7 +492,7 @@ export class AssessmentService {
   }
 
   async getMarkingKeys(assessmentId: string) {
-    const { data: questions, error: qError } = await supabase
+    const { data: questions, error: qError } = await this.supabase
       .from('questions')
       .select('id, content, question_type, options(*), marking_keys(*)')
       .eq('assessment_id', assessmentId)
@@ -497,7 +506,7 @@ export class AssessmentService {
     for (const key of keys) {
       if (!key.question_id) continue
       
-      const { error } = await supabase
+      const { error } = await this.supabase
         .from('marking_keys')
         .upsert(key, { onConflict: 'question_id' })
       if (error) throw error
@@ -505,7 +514,7 @@ export class AssessmentService {
   }
 
   async getSubmissions(assessmentId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('submissions')
       .select('*, candidates(*), assessments(title, assessment_code)')
       .eq('assessment_id', assessmentId)
@@ -516,7 +525,7 @@ export class AssessmentService {
   }
 
   async getSubmissionWithResponses(submissionId: string) {
-    const { data: submission, error: sError } = await supabase
+    const { data: submission, error: sError } = await this.supabase
       .from('submissions')
       .select('*, assessments(*), candidates(*)')
       .eq('id', submissionId)
@@ -524,7 +533,7 @@ export class AssessmentService {
     
     if (sError) throw sError
 
-    const { data: responses, error: rError } = await supabase
+    const { data: responses, error: rError } = await this.supabase
       .from('responses')
       .select('*, questions(*, options(*), marking_keys(*))')
       .eq('submission_id', submissionId)
@@ -540,7 +549,7 @@ export class AssessmentService {
   async saveGrades(submissionId: string, responseGrades: { id: string, marks_awarded: number, is_graded: boolean }[]) {
     // 1. Update individual responses
     for (const grade of responseGrades) {
-      const { error } = await supabase
+      const { error } = await this.supabase
         .from('responses')
         .update({
           marks_awarded: grade.marks_awarded,
@@ -555,11 +564,11 @@ export class AssessmentService {
     const manualScore = responseGrades.reduce((acc, curr) => acc + (curr.marks_awarded || 0), 0)
     
     // Fetch current auto_score and penalty
-    const { data: sub } = await supabase.from('submissions').select('auto_score, penalty_applied').eq('id', submissionId).single()
+    const { data: sub } = await this.supabase.from('submissions').select('auto_score, penalty_applied').eq('id', submissionId).single()
     
     const totalScore = (sub?.auto_score || 0) + manualScore - (sub?.penalty_applied || 0)
 
-    const { error: subError } = await supabase
+    const { error: subError } = await this.supabase
       .from('submissions')
       .update({
         manual_score: manualScore,
@@ -572,7 +581,7 @@ export class AssessmentService {
   }
 
   async autoMarkMCQ(assessmentId: string) {
-    const { error } = await supabase.rpc('auto_mark_mcq', { assessment_id_param: assessmentId })
+    const { error } = await this.supabase.rpc('auto_mark_mcq', { assessment_id_param: assessmentId })
     if (error) throw error
   }
 }

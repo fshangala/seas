@@ -1,6 +1,6 @@
 {
   "name": "seas",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
@@ -12,6 +12,7 @@
     "@ducanh2912/next-pwa": "^10.2.9",
     "@langchain/core": "^1.1.44",
     "@langchain/openai": "^1.4.5",
+    "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.103.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

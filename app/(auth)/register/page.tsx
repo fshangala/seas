@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useActionState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { signUp } from '@/lib/actions/auth'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import Input from '@/components/Input'
@@ -10,60 +10,13 @@ import FormGroup from '@/components/FormGroup'
 import { UserPlus, Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react'
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
   const router = useRouter()
+  const [state, formAction, isPending] = useActionState(
+    signUp,
+    null
+  )
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
-    try {
-      const { data, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          }
-        }
-      })
-
-      if (authError) throw authError
-
-      if (data.user) {
-        // Insert into profiles table
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            { 
-              id: data.user.id, 
-              full_name: fullName, 
-              role: 'examiner' 
-            }
-          ])
-
-        if (profileError) throw profileError
-        
-        setSuccess(true)
-        setTimeout(() => {
-          router.push('/login')
-        }, 3000)
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to register'
-      setError(message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (success) {
+  if (state?.success) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-50 min-h-screen">
         <Card className="max-w-md w-full p-8 text-center flex flex-col items-center gap-6">
@@ -76,7 +29,6 @@ export default function RegisterPage() {
               Your account has been created. You can now log in to the Staff Portal.
             </p>
           </div>
-          <p className="text-sm text-slate-400">Redirecting to login in a few seconds...</p>
           <Button onClick={() => router.push('/login')} className="w-full">
             Go to Login
           </Button>
@@ -97,49 +49,46 @@ export default function RegisterPage() {
         </div>
 
         <Card className="p-8">
-          <form onSubmit={handleRegister} className="flex flex-col gap-6">
+          <form action={formAction} className="flex flex-col gap-6">
             <FormGroup label="Full Name">
               <Input 
+                name="fullName"
                 type="text" 
                 required
                 icon={User}
                 placeholder="Dr. Jane Doe" 
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
               />
             </FormGroup>
 
             <FormGroup label="Email Address">
               <Input 
+                name="email"
                 type="email" 
                 required
                 icon={Mail}
                 placeholder="name@institution.edu" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
               />
             </FormGroup>
 
             <FormGroup label="Password">
               <Input 
+                name="password"
                 type="password" 
                 required
                 icon={Lock}
                 placeholder="••••••••" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
               />
             </FormGroup>
 
-            {error && (
+            {state?.error && (
               <div className="flex items-center gap-2 text-red-500 bg-red-50 p-4 rounded-2xl text-sm font-bold border border-red-100">
                 <AlertCircle size={16} />
-                {error}
+                {state.error}
               </div>
             )}
 
-            <Button type="submit" disabled={loading} className="py-4 text-lg mt-2">
-              {loading ? 'Creating Account...' : 'Register'}
+            <Button type="submit" disabled={isPending} className="py-4 text-lg mt-2">
+              {isPending ? 'Creating Account...' : 'Register'}
             </Button>
           </form>
 

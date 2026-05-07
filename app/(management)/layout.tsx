@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { signOut } from '@/lib/actions/auth'
 import { ShieldCheck, LogOut, LayoutDashboard, BookOpen, Users, ClipboardCheck } from 'lucide-react'
 import { User } from '@supabase/supabase-js'
 import { Tables } from '@/lib/types/database.types'
@@ -60,8 +61,10 @@ export default function ManagementLayout({ children }: { children: React.ReactNo
   }, [router, pathname])
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
+    const result = await signOut()
+    if (result.success) {
+      router.push('/login')
+    }
   }
 
   if (loading) return <div className="flex-1 flex items-center justify-center font-bold text-teal-600 animate-pulse">Verifying Credentials...</div>

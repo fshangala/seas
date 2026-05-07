@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useActionState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { signIn } from '@/lib/actions/auth'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import Input from '@/components/Input'
@@ -10,43 +10,21 @@ import FormGroup from '@/components/FormGroup'
 import { ShieldCheck, Mail, Lock, AlertCircle } from 'lucide-react'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const router = useRouter()
+  const [state, formAction, isPending] = useActionState(
+    signIn,
+    null
+  )
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
-    try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
-
-      if (authError) throw authError
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', data.user.id)
-        .single()
-
-      if (profile?.role === 'admin') {
+  useEffect(() => {
+    if (state?.success) {
+      if (state.role === 'admin') {
         router.push('/admin/dashboard')
       } else {
         router.push('/examiner/dashboard')
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to sign in'
-      setError(message)
-    } finally {
-      setLoading(false)
     }
-  }
+  }, [state, router])
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-50 min-h-screen">
@@ -60,38 +38,36 @@ export default function LoginPage() {
         </div>
 
         <Card className="p-8">
-          <form onSubmit={handleLogin} className="flex flex-col gap-6">
+          <form action={formAction} className="flex flex-col gap-6">
             <FormGroup label="Email Address">
               <Input 
+                name="email"
                 type="email" 
                 required
                 icon={Mail}
                 placeholder="name@institution.edu" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
               />
             </FormGroup>
 
             <FormGroup label="Password">
               <Input 
+                name="password"
                 type="password" 
                 required
                 icon={Lock}
                 placeholder="••••••••" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
               />
             </FormGroup>
 
-            {error && (
+            {state?.error && (
               <div className="flex items-center gap-2 text-red-500 bg-red-50 p-4 rounded-2xl text-sm font-bold border border-red-100">
                 <AlertCircle size={16} />
-                {error}
+                {state.error}
               </div>
             )}
 
-            <Button type="submit" disabled={loading} className="py-4 text-lg mt-2">
-              {loading ? 'Authenticating...' : 'Sign In'}
+            <Button type="submit" disabled={isPending} className="py-4 text-lg mt-2">
+              {isPending ? 'Authenticating...' : 'Sign In'}
             </Button>
           </form>
 

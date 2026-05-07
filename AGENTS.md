@@ -22,7 +22,8 @@ This document provides foundational mandates for AI agents working on the SEAS p
 ## 🛠 Tech Stack Conventions
 - **Tailwind 4**: Use the new `@theme` and `@layer` syntax in `app/globals.css`.
 - **IndexedDB**: Use the raw `IDBService` in `lib/idb.ts`. Avoid adding third-party storage libraries unless explicitly requested.
-- **Supabase**: Always use the typed client from `lib/supabase.ts` and ensure database types in `lib/types/database.types.ts` are kept up to date.
+- **Supabase**: Always use the typed client. Use `lib/supabase/client.ts` for Browser Components and `lib/supabase/server.ts` for Server Components/Actions.
+- **Auth**: Use **Server Actions** for all authentication and data mutations. Middleware handles automatic session refreshing.
 - **AI**: Use **LangChain** with **OpenAI SDK** for all AI features. Centralize model configuration in `lib/models/openai_model.ts`.
 
 ## 🔐 Security & Integrity Rules
@@ -52,6 +53,7 @@ This document provides foundational mandates for AI agents working on the SEAS p
 ### Core Infrastructure
 - [x] Next.js 14 App Router setup with Tailwind 4.
 - [x] Supabase Client & Database Types integration.
+- [x] **Supabase SSR**: Server-side client, session middleware, and Server Actions for auth.
 - [x] Raw IndexedDB Service (`lib/idb.ts`) for offline persistence.
 - [x] MVVM State Management with `AssessmentContext`.
 - [x] Material Design 3 "Teal Theme" implementation.

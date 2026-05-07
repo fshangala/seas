@@ -5,9 +5,11 @@ import Card from '@/components/Card'
 import Button from '@/components/Button'
 import { assessmentService } from '@/lib/services/AssessmentService'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, Save, CheckCircle2, AlertCircle } from 'lucide-react'
+import { ChevronLeft, Save, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react'
 
 import { Tables } from '@/lib/types/database.types'
+import aiGenerateMarkingKey from '@/lib/actions/ai_marking_key';
+import { useAlert } from '@/lib/viewmodels/AlertContext';
 
 type QuestionWithKey = Tables<'questions'> & {
   options: Tables<'options'>[]
@@ -19,8 +21,11 @@ export default function ManageMarkingKey({ params }: { params: Promise<{ id: str
   const { id } = use(params)
   const [questions, setQuestions] = useState<QuestionWithKey[]>([])
   const [markingKeys, setMarkingKeys] = useState<Record<string, Partial<Tables<'marking_keys'>>>>({})
+  const [loadingMarkingKeys, setLoadingMarkingKeys] = useState<Record<string, boolean>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+
+  const { showAlert } = useAlert()
 
   useEffect(() => {
     async function load() {
@@ -78,6 +83,34 @@ export default function ManageMarkingKey({ params }: { params: Promise<{ id: str
     }))
   }
 
+  const handleAiGenerate = async ({
+    question,
+    options
+  } : { question: Tables<'questions'>, options: Tables<'options'>[] }) => {
+    setLoadingMarkingKeys(prev => ({ ...prev, [question.id]: true }))
+    try {
+      const keyData = await aiGenerateMarkingKey({ question, options })
+      updateKey(question.id, {
+        correct_option_id: keyData.correct_option_id,
+        correct_text_match: keyData.correct_text_match,
+        grading_notes: keyData.grading_notes
+      });
+    } catch (err) {
+      showAlert('Error generating marking key with AI.')
+      console.error(err)
+    } finally {
+      setLoadingMarkingKeys(prev => ({ ...prev, [question.id]: false }))
+    }
+  }
+
+  const handleAiGenerateAll = async () => {
+    setSaving(true)
+    for (const q of questions) {
+      await handleAiGenerate({ question: q, options: q.options || [] })
+    }
+    setSaving(false)
+  }
+
   if (loading) return <div className="animate-pulse space-y-8">
     <div className="h-12 w-64 bg-slate-200 rounded-2xl" />
     <div className="space-y-4">
@@ -99,6 +132,14 @@ export default function ManageMarkingKey({ params }: { params: Promise<{ id: str
           <h1 className="text-4xl font-black text-slate-800 tracking-tight">Set Marking Key</h1>
           <p className="text-slate-500 font-medium">Define correct answers and grading rubrics for this assessment.</p>
         </div>
+        <Button 
+          icon={Sparkles}
+          onClick={() => handleAiGenerateAll()}
+          disabled={saving}
+          className="shadow-xl shadow-teal-500/20"
+        >
+          {saving ? 'Generating...' : 'Generate with AI'}
+        </Button>
         <Button 
           icon={Save} 
           onClick={handleSave} 
@@ -200,6 +241,17 @@ export default function ManageMarkingKey({ params }: { params: Promise<{ id: str
                     </label>
                   </div>
                 </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button 
+                  icon={Sparkles}
+                  onClick={() => handleAiGenerate({ question: q, options: q.options || [] })}
+                  className="px-4 py-2 h-auto text-sm rounded-xl shadow-md shadow-teal-500/20"
+                  disabled={loadingMarkingKeys[q.id]}
+                >
+                  {loadingMarkingKeys[q.id] ? 'Generating...' : 'Generate with AI'}
+                </Button>
               </div>
             </Card>
           )

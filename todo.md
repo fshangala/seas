@@ -16,5 +16,6 @@
 - [x] Add mandate to split page logic into components
 - [x] Create `todo.md` for task tracking.
 
-## Infrastructure
+## Features & Enhancements
+- [x] **JSON Import Refactoring**: Replaced JSON file upload with a text area form and AI prompt helper on the assessment edit page.
 - [x] **Supabase SSR Integration**: Added server-side Supabase client, `proxy.ts` (Next.js 16) for session refreshing, and migrated auth to Server Actions.

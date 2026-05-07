@@ -20,7 +20,7 @@ interface BulkMarkingKey {
   is_auto_mark?: boolean;
   correct_option_index?: number; // 0-based index of the correct option in the options array (for MCQ)
   correct_text_match?: string; // Correct text for auto-marking (for Short Answer)
-  grading_notes?: string;
+  grading_notes: string; // Notes for grading the question (for human graders and for auto-marking logic with AI)
 }
 
 interface BulkQuestion {

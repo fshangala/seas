@@ -28,7 +28,7 @@ This document provides foundational mandates for AI agents working on the SEAS p
 - **AI**: Use **LangChain** with **OpenAI SDK** for all AI features. Centralize model configuration in `lib/models/openai_model.ts`.
 
 ## 🔐 Security & Integrity Rules
-- **Proctoring**: NEVER remove or disable the `visibilitychange`, `copy`, `paste`, or `cut` listeners in `AssessmentContext` without explicit user instruction.
+- **Proctoring**: NEVER remove or disable the `visibilitychange`, `copy`, `paste`, or `cut` listeners in `AssessmentContext` without explicit user instruction. Proctoring is automatically disabled on management routes (`/admin`, `/examiner`) to facilitate administrative tasks.
 - **Data Sync**: Ensure all local responses are marked with `synced: false` until successfully persisted to Supabase.
 - **Sensitive Data**: Do not log `student_id` or `assessment_code` to external services. Use the built-in `audit_logs` for tracking.
 - **Immutability**: Published assessments MUST remain read-only. Any modifications (metadata or questions) must be performed on a duplicate draft.

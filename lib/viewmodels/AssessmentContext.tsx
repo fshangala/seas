@@ -1,6 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { idb, IDBResponse, IDBLog } from '../idb'
 import { assessmentService } from '../services/AssessmentService'
 import { Tables } from '../types/database.types'
@@ -58,6 +59,7 @@ function reducer(state: State, action: Action): State {
 
 export function AssessmentProvider({ children }: { children: React.ReactNode }) {
   const { showAlert } = useAlert()
+  const pathname = usePathname()
   const [state, dispatch] = useReducer(reducer, {
     assessment: null,
     submissionId: null,
@@ -89,6 +91,10 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
 
   // Proctoring listeners
   useEffect(() => {
+    // Disable proctoring on management routes
+    const isManagementRoute = pathname?.startsWith('/admin') || pathname?.startsWith('/examiner')
+    if (isManagementRoute) return
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         const log = {
@@ -130,7 +136,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
       document.removeEventListener('paste', handleCopyPaste)
       document.removeEventListener('cut', handleCopyPaste)
     }
-  }, [showAlert])
+  }, [showAlert, pathname])
 
   return (
     <AssessmentContext.Provider value={{ state, dispatch }}>
